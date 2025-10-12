@@ -1,2 +1,2 @@
-# queevndi
+# quevendi
 Venta para bodegas
