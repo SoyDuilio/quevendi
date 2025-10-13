@@ -1,0 +1,1546 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>QueVendí PRO</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            transition: background-color 0.3s ease;
+            overflow: hidden;
+        }
+
+        /* TEMAS PROFESIONALES */
+        .theme-corporate {
+            --primary: #0F172A;
+            --primary-light: #1E293B;
+            --accent: #3B82F6;
+            --accent-light: #60A5FA;
+            --bg: #F8FAFC;
+            --card-bg: #FFFFFF;
+            --text: #0F172A;
+            --text-light: #64748B;
+            --border: #E2E8F0;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+            --shadow: rgba(15, 23, 42, 0.1);
+        }
+
+        .theme-business {
+            --primary: #047857;
+            --primary-light: #059669;
+            --accent: #0891B2;
+            --accent-light: #06B6D4;
+            --bg: #F9FAFB;
+            --card-bg: #FFFFFF;
+            --text: #111827;
+            --text-light: #6B7280;
+            --border: #E5E7EB;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+            --shadow: rgba(4, 120, 87, 0.1);
+        }
+
+        .theme-premium {
+            --primary: #6366F1;
+            --primary-light: #818CF8;
+            --accent: #8B5CF6;
+            --accent-light: #A78BFA;
+            --bg: #F5F3FF;
+            --card-bg: #FFFFFF;
+            --text: #1F2937;
+            --text-light: #6B7280;
+            --border: #DDD6FE;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+            --shadow: rgba(99, 102, 241, 0.15);
+        }
+
+        .theme-darkpro {
+            --primary: #0EA5E9;
+            --primary-light: #38BDF8;
+            --accent: #F97316;
+            --accent-light: #FB923C;
+            --bg: #0F172A;
+            --card-bg: #1E293B;
+            --text: #F1F5F9;
+            --text-light: #94A3B8;
+            --border: #334155;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+            --shadow: rgba(14, 165, 233, 0.2);
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        /* ICONOS SVG */
+        .icon {
+            width: 20px;
+            height: 20px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .icon-lg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .icon-xl {
+            width: 32px;
+            height: 32px;
+        }
+
+        /* LAYOUT 100VH */
+        .container {
+            max-width: 420px;
+            margin: 0 auto;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg);
+        }
+
+        /* HEADER FIJO */
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            box-shadow: 0 2px 8px var(--shadow);
+            flex-shrink: 0;
+            z-index: 100;
+        }
+
+        .user-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.1) 100%);
+            border: 2px solid rgba(255,255,255,0.3);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: 700;
+            color: white;
+            flex-shrink: 0;
+            text-transform: uppercase;
+        }
+
+        .header-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .store-name {
+            font-size: 17px;
+            font-weight: 700;
+            color: #FFFFFF;
+            line-height: 1.2;
+            margin-bottom: 3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            letter-spacing: -0.01em;
+        }
+
+        .store-meta {
+            font-size: 12px;
+            color: rgba(255,255,255,0.8);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .icon-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #FFFFFF;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .icon-btn:active {
+            background: rgba(255,255,255,0.25);
+            transform: scale(0.95);
+        }
+
+        /* CONTENIDO SCROLLABLE */
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 20px 16px 24px;
+        }
+
+        /* FOOTER STICKY */
+        .footer-actions {
+            padding: 16px;
+            background: var(--card-bg);
+            border-top: 1px solid var(--border);
+            box-shadow: 0 -4px 12px var(--shadow);
+            flex-shrink: 0;
+        }
+
+        /* BOTÓN DE VOZ PRINCIPAL */
+        .voice-button {
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            padding: 18px 32px;
+            font-size: 16px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            box-shadow: 0 4px 16px var(--shadow);
+            transition: all 0.3s;
+            width: 100%;
+            justify-content: center;
+            letter-spacing: 0.02em;
+        }
+
+        .voice-button:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 8px var(--shadow);
+        }
+
+        .voice-button.listening {
+            animation: pulse-pro 1.8s infinite;
+        }
+
+        @keyframes pulse-pro {
+            0%, 100% { 
+                transform: scale(1); 
+                box-shadow: 0 4px 16px var(--shadow);
+            }
+            50% { 
+                transform: scale(1.02); 
+                box-shadow: 0 8px 24px var(--shadow);
+            }
+        }
+
+        /* WAVE ANIMATION */
+        .wave-animation {
+            display: flex;
+            gap: 3px;
+            align-items: center;
+        }
+
+        .wave-bar {
+            width: 3px;
+            height: 14px;
+            background: white;
+            border-radius: 2px;
+            animation: wave-pro 1s infinite ease-in-out;
+        }
+
+        .wave-bar:nth-child(2) { animation-delay: 0.1s; height: 10px; }
+        .wave-bar:nth-child(3) { animation-delay: 0.2s; height: 16px; }
+        .wave-bar:nth-child(4) { animation-delay: 0.3s; height: 12px; }
+        .wave-bar:nth-child(5) { animation-delay: 0.4s; height: 14px; }
+
+        @keyframes wave-pro {
+            0%, 100% { transform: scaleY(0.6); }
+            50% { transform: scaleY(1.2); }
+        }
+
+        /* TARJETAS */
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 18px;
+            box-shadow: 0 1px 3px var(--shadow);
+            margin-bottom: 16px;
+            border: 1px solid var(--border);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+        }
+
+        .card-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-badge {
+            background: var(--accent);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .card-amount {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 10px;
+            letter-spacing: -0.02em;
+        }
+
+        .card-stats {
+            display: flex;
+            gap: 20px;
+            font-size: 13px;
+            color: var(--text-light);
+        }
+
+        .card-stat {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* GRID DE ACCIONES */
+        .quick-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .quick-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 1px 2px var(--shadow);
+        }
+
+        .quick-card:active {
+            transform: translateY(2px);
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        .quick-card:active .icon {
+            stroke: white;
+        }
+
+        .quick-icon {
+            margin-bottom: 8px;
+            color: var(--accent);
+        }
+
+        .quick-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text);
+            letter-spacing: 0.02em;
+        }
+
+        /* PRODUCTO EN CATÁLOGO */
+        .product-item {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 12px;
+            display: flex;
+            gap: 14px;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .product-item:active {
+            transform: scale(0.98);
+            border-color: var(--accent);
+        }
+
+        .product-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .product-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .product-name {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+
+        .product-meta {
+            font-size: 12px;
+            color: var(--text-light);
+        }
+
+        .product-price {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--primary);
+            flex-shrink: 0;
+        }
+
+        .stock-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 6px;
+        }
+
+        .stock-ok {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .stock-low {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+
+        /* BÚSQUEDA */
+        .search-container {
+            position: relative;
+            margin-bottom: 16px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 16px 12px 44px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 14px;
+            background: var(--card-bg);
+            color: var(--text);
+            transition: all 0.2s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-light);
+        }
+
+        /* BOTONES */
+        .btn {
+            padding: 14px 20px;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+            letter-spacing: 0.01em;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn:active {
+            transform: translateY(2px);
+        }
+
+        /* MODAL */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: flex-end;
+            z-index: 1000;
+            animation: fadeIn 0.2s;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--bg);
+            width: 100%;
+            max-width: 420px;
+            margin: 0 auto;
+            border-radius: 20px 20px 0 0;
+            padding: 24px 16px;
+            animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        .modal-header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 6px;
+            letter-spacing: -0.01em;
+        }
+
+        .modal-subtitle {
+            font-size: 13px;
+            color: var(--text-light);
+        }
+
+        .modal-body {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 16px;
+        }
+
+        /* TABS */
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px;
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: var(--text-light);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+
+        /* PEDIDO ITEM */
+        .order-item {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .order-number {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .order-status {
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-pending {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+
+        .status-ready {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .order-customer {
+            font-size: 13px;
+            color: var(--text-light);
+            margin-bottom: 10px;
+        }
+
+        .order-items {
+            font-size: 13px;
+            color: var(--text);
+            margin-bottom: 12px;
+            padding-left: 12px;
+            border-left: 2px solid var(--border);
+        }
+
+        .order-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+        }
+
+        .order-total {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        /* CHECKBOX PROFESIONAL */
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            margin-bottom: 12px;
+        }
+
+        .checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .checkbox.checked {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
+        /* INPUT */
+        .input-group {
+            margin-bottom: 16px;
+        }
+
+        .input-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+
+        .input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 14px;
+            background: var(--card-bg);
+            color: var(--text);
+            transition: all 0.2s;
+        }
+
+        .input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        /* SELECTOR DE TEMA */
+        .theme-fab {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: var(--accent);
+            color: white;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 12px var(--shadow);
+            z-index: 999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .theme-fab:active {
+            transform: scale(0.95);
+        }
+
+        .theme-menu {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 8px;
+            box-shadow: 0 8px 24px var(--shadow);
+            display: none;
+            flex-direction: column;
+            gap: 6px;
+            z-index: 998;
+            border: 1px solid var(--border);
+        }
+
+        .theme-menu.active {
+            display: flex;
+        }
+
+        .theme-option {
+            padding: 12px 18px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            text-align: left;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .theme-option:active {
+            transform: scale(0.98);
+        }
+
+        .screen {
+            display: none;
+            height: 100vh;
+            flex-direction: column;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        /* DIVIDER */
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 20px 0;
+            color: var(--text-light);
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        /* EMPTY STATE */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .empty-icon {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 16px;
+            color: var(--text-light);
+            opacity: 0.5;
+        }
+
+        .empty-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+
+        .empty-text {
+            font-size: 13px;
+            color: var(--text-light);
+        }
+
+        /* CART BADGE */
+        .cart-badge {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            background: var(--danger);
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            font-size: 11px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body class="theme-corporate">
+    <div class="container">
+        <!-- SCREEN 1: HOME VENDEDOR -->
+        <div class="screen active" id="screen-vendor">
+            <div class="header">
+                <div class="user-avatar">H</div>
+                <div class="header-info">
+                    <div class="store-name">Bodega Hilda</div>
+                    <div class="store-meta">
+                        <svg class="icon" style="width: 14px; height: 14px;">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                            <circle cx="12" cy="10" r="3"></circle>
+                        </svg>
+                        <span>Surco, Lima</span>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <button class="icon-btn" onclick="showScreen('screen-config')">
+                        <svg class="icon">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path d="M12 1v6m0 6v6M5.6 5.6l4.2 4.2m4.2 4.2l4.2 4.2M1 12h6m6 0h6M5.6 18.4l4.2-4.2m4.2-4.2l4.2-4.2"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="content">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <svg class="icon icon-lg">
+                                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                            </svg>
+                            Ventas de hoy
+                        </div>
+                        <div class="card-badge">En vivo</div>
+                    </div>
+                    <div class="card-amount">S/ 245.50</div>
+                    <div class="card-stats">
+                        <div class="card-stat">
+                            <svg class="icon">
+                                <path d="M3 3h18v18H3zM8 3v18M16 3v18M3 9h18M3 15h18"></path>
+                            </svg>
+                            <span>18 ventas</span>
+                        </div>
+                        <div class="card-stat">
+                            <svg class="icon">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                            <span>2 vendedores</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="quick-grid">
+                    <div class="quick-card" onclick="showScreen('screen-products')">
+                        <div class="quick-icon">
+                            <svg class="icon icon-lg">
+                                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                            </svg>
+                        </div>
+                        <div class="quick-label">Stock</div>
+                    </div>
+                    <div class="quick-card" onclick="showScreen('screen-orders')">
+                        <div class="quick-icon">
+                            <svg class="icon icon-lg">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                            </svg>
+                        </div>
+                        <div class="quick-label">Pedidos</div>
+                    </div>
+                    <div class="quick-card">
+                        <div class="quick-icon">
+                            <svg class="icon icon-lg">
+                                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="9" cy="7" r="4"></circle>
+                                <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"></path>
+                            </svg>
+                        </div>
+                        <div class="quick-label">Clientes</div>
+                    </div>
+                    <div class="quick-card">
+                        <div class="quick-icon">
+                            <svg class="icon icon-lg">
+                                <line x1="12" y1="1" x2="12" y2="23"></line>
+                                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                            </svg>
+                        </div>
+                        <div class="quick-label">Reportes</div>
+                    </div>
+                </div>
+
+                <div class="divider">MODO VENDEDOR</div>
+
+                <div class="search-container">
+                    <svg class="icon search-icon">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.35-4.35"></path>
+                    </svg>
+                    <input type="text" class="search-input" placeholder="Buscar producto...">
+                </div>
+            </div>
+
+            <div class="footer-actions">
+                <button class="voice-button" onclick="showScreen('screen-listening')">
+                    <svg class="icon icon-lg">
+                        <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path>
+                        <path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v3"></path>
+                    </svg>
+                    <span>VENDER POR VOZ</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- SCREEN 2: CATÁLOGO CLIENTE -->
+        <div class="screen" id="screen-catalog">
+            <div class="header">
+                <button class="icon-btn" onclick="showScreen('screen-vendor')">
+                    <svg class="icon">
+                        <path d="M19 12H5M12 19l-7-7 7-7"></path>
+                    </svg>
+                </button>
+                <div class="header-info">
+                    <div class="store-name">Bodega Hilda</div>
+                    <div class="store-meta">Catálogo de productos</div>
+                </div>
+                <div class="header-actions">
+                    <button class="icon-btn" style="position: relative;">
+                        <svg class="icon">
+                            <circle cx="9" cy="21" r="1"></circle>
+                            <circle cx="20" cy="21" r="1"></circle>
+                            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                        </svg>
+                        <span class="cart-badge">3</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="content">
+                <div class="search-container">
+                    <svg class="icon search-icon">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.35-4.35"></path>
+                    </svg>
+                    <input type="text" class="search-input" placeholder="Buscar productos...">
+                </div>
+
+                <div class="tabs">
+                    <button class="tab active">
+                        <svg class="icon" style="display: inline; vertical-align: middle; width: 16px; height: 16px; margin-right: 4px;">
+                            <rect x="3" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="14" width="7" height="7"></rect>
+                            <rect x="3" y="14" width="7" height="7"></rect>
+                        </svg>
+                        Todos
+                    </button>
+                    <button class="tab">Bebidas</button>
+                    <button class="tab">Snacks</button>
+                </div>
+
+                <div class="product-item" onclick="showScreen('screen-product-detail')">
+                    <div class="product-icon">IK</div>
+                    <div class="product-info">
+                        <div class="product-name">Inca Kola 1L</div>
+                        <div class="product-meta">
+                            Bebidas
+                            <span class="stock-badge stock-ok">Stock: 24</span>
+                        </div>
+                    </div>
+                    <div class="product-price">S/ 3.50</div>
+                </div>
+
+                <div class="product-item">
+                    <div class="product-icon" style="background: linear-gradient(135deg, #059669, #10B981);">LG</div>
+                    <div class="product-info">
+                        <div class="product-name">Leche Gloria Entera</div>
+                        <div class="product-meta">
+                            Lácteos
+                            <span class="stock-badge stock-ok">Stock: 18</span>
+                        </div>
+                    </div>
+                    <div class="product-price">S/ 4.20</div>
+                </div>
+
+                <div class="product-item">
+                    <div class="product-icon" style="background: linear-gradient(135deg, #F59E0B, #FBBF24);">AZ</div>
+                    <div class="product-info">
+                        <div class="product-name">Azúcar Cartavio 1kg</div>
+                        <div class="product-meta">
+                            Abarrotes
+                            <span class="stock-badge stock-low">Stock: 5</span>
+                        </div>
+                    </div>
+                    <div class="product-price">S/ 5.80</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SCREEN 3: GESTIÓN DE PEDIDOS (CAJA) -->
+        <div class="screen" id="screen-orders">
+            <div class="header">
+                <button class="icon-btn" onclick="showScreen('screen-vendor')">
+                    <svg class="icon">
+                        <path d="M19 12H5M12 19l-7-7 7-7"></path>
+                    </svg>
+                </button>
+                <div class="header-info">
+                    <div class="store-name">Gestión de Pedidos</div>
+                    <div class="store-meta">Caja y Despacho</div>
+                </div>
+            </div>
+
+            <div class="content">
+                <div class="tabs">
+                    <button class="tab active">Pendientes</button>
+                    <button class="tab">Listos</button>
+                    <button class="tab">Completados</button>
+                </div>
+
+                <div class="order-item">
+                    <div class="order-header">
+                        <div>
+                            <div class="order-number">#0042</div>
+                            <div class="order-customer">
+                                <svg class="icon" style="display: inline; vertical-align: middle; width: 14px; height: 14px; margin-right: 4px;">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="12" cy="7" r="4"></circle>
+                                </svg>
+                                Carlos Mendoza
+                            </div>
+                        </div>
+                        <div class="order-status status-pending">PENDIENTE</div>
+                    </div>
+                    <div class="order-items">
+                        2x Inca Kola 1L<br>
+                        1x Leche Gloria Entera<br>
+                        3x Pan Francés
+                    </div>
+                    <div class="order-footer">
+                        <div class="order-total">S/ 15.90</div>
+                        <button class="btn btn-success" style="padding: 8px 16px; font-size: 13px;">
+                            <svg class="icon" style="width: 16px; height: 16px;">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                            Preparar
+                        </button>
+                    </div>
+                </div>
+
+                <div class="order-item">
+                    <div class="order-header">
+                        <div>
+                            <div class="order-number">#0041</div>
+                            <div class="order-customer">
+                                <svg class="icon" style="display: inline; vertical-align: middle; width: 14px; height: 14px; margin-right: 4px;">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="12" cy="7" r="4"></circle>
+                                </svg>
+                                María Torres
+                            </div>
+                        </div>
+                        <div class="order-status status-ready">LISTO</div>
+                    </div>
+                    <div class="order-items">
+                        1x Azúcar 1kg<br>
+                        2x Café Altomayo
+                    </div>
+                    <div class="order-footer">
+                        <div class="order-total">S/ 21.60</div>
+                        <button class="btn btn-primary" style="padding: 8px 16px; font-size: 13px;">
+                            <svg class="icon" style="width: 16px; height: 16px;">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                            </svg>
+                            Entregar
+                        </button>
+                    </div>
+                </div>
+
+                <div class="empty-state" style="margin-top: 40px;">
+                    <svg class="empty-icon icon">
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                    </svg>
+                    <div class="empty-title">Todo al día</div>
+                    <div class="empty-text">No hay más pedidos pendientes</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SCREEN 4: PRODUCTOS/STOCK -->
+        <div class="screen" id="screen-products">
+            <div class="header">
+                <button class="icon-btn" onclick="showScreen('screen-vendor')">
+                    <svg class="icon">
+                        <path d="M19 12H5M12 19l-7-7 7-7"></path>
+                    </svg>
+                </button>
+                <div class="header-info">
+                    <div class="store-name">Gestión de Stock</div>
+                    <div class="store-meta">124 productos activos</div>
+                </div>
+                <div class="header-actions">
+                    <button class="icon-btn">
+                        <svg class="icon">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="content">
+                <div class="search-container">
+                    <svg class="icon search-icon">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.35-4.35"></path>
+                    </svg>
+                    <input type="text" class="search-input" placeholder="Buscar productos...">
+                </div>
+
+                <div class="card" style="background: rgba(245, 158, 11, 0.1); border-color: var(--warning);">
+                    <div class="card-header">
+                        <div class="card-title" style="color: var(--warning);">
+                            <svg class="icon icon-lg">
+                                <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+                                <line x1="12" y1="9" x2="12" y2="13"></line>
+                                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                            </svg>
+                            Stock bajo
+                        </div>
+                        <div class="card-badge" style="background: var(--warning);">3 productos</div>
+                    </div>
+                </div>
+
+                <div class="product-item">
+                    <div class="product-icon">IK</div>
+                    <div class="product-info">
+                        <div class="product-name">Inca Kola 1L</div>
+                        <div class="product-meta">
+                            Costo: S/ 2.80
+                            <span class="stock-badge stock-ok">Stock: 24</span>
+                        </div>
+                    </div>
+                    <div class="product-price">S/ 3.50</div>
+                </div>
+
+                <div class="product-item">
+                    <div class="product-icon" style="background: linear-gradient(135deg, #F59E0B, #FBBF24);">AZ</div>
+                    <div class="product-info">
+                        <div class="product-name">Azúcar Cartavio 1kg</div>
+                        <div class="product-meta">
+                            Costo: S/ 4.50
+                            <span class="stock-badge stock-low">Stock: 5</span>
+                        </div>
+                    </div>
+                    <div class="product-price">S/ 5.80</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SCREEN 5: ESCUCHANDO -->
+        <div class="screen" id="screen-listening">
+            <div class="header">
+                <div class="user-avatar">H</div>
+                <div class="header-info">
+                    <div class="store-name">Bodega Hilda</div>
+                    <div class="store-meta">Modo voz activo</div>
+                </div>
+            </div>
+
+            <div class="modal active">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <div class="modal-title">
+                            <svg class="icon icon-xl" style="display: inline; vertical-align: middle; margin-right: 8px;">
+                                <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path>
+                                <path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v3"></path>
+                            </svg>
+                            Escuchando
+                        </div>
+                        <div class="modal-subtitle">Di el producto y la cantidad</div>
+                    </div>
+
+                    <div class="modal-body" style="text-align: center;">
+                        <button class="voice-button listening" style="max-width: 280px; margin: 0 auto 24px;">
+                            <div class="wave-animation">
+                                <div class="wave-bar"></div>
+                                <div class="wave-bar"></div>
+                                <div class="wave-bar"></div>
+                                <div class="wave-bar"></div>
+                                <div class="wave-bar"></div>
+                            </div>
+                        </button>
+
+                        <div class="card" style="text-align: left; min-height: 80px; border: 2px dashed var(--border);">
+                            <div style="font-size: 13px; color: var(--text-light); margin-bottom: 8px; font-weight: 600;">Transcripción:</div>
+                            <div style="font-size: 15px; color: var(--text); font-style: italic;">
+                                "vender dos inca kola de un litro..."
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-secondary" onclick="showScreen('screen-vendor')">
+                        <svg class="icon">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                        Cancelar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SCREEN 6: CONFIGURACIÓN -->
+        <div class="screen" id="screen-config">
+            <div class="header">
+                <button class="icon-btn" onclick="showScreen('screen-vendor')">
+                    <svg class="icon">
+                        <path d="M19 12H5M12 19l-7-7 7-7"></path>
+                    </svg>
+                </button>
+                <div class="header-info">
+                    <div class="store-name">Configuración</div>
+                    <div class="store-meta">Personaliza tu experiencia</div>
+                </div>
+            </div>
+
+            <div class="content">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <svg class="icon icon-lg">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                            Usuario
+                        </div>
+                    </div>
+                    <div style="font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 4px;">Hilda Vargas</div>
+                    <div style="font-size: 13px; color: var(--text-light);">DNI: 12345678 • Dueña</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <svg class="icon icon-lg">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="9" y1="3" x2="9" y2="21"></line>
+                            </svg>
+                            Tema visual
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                        <button class="btn btn-secondary" onclick="changeTheme('corporate')" style="justify-content: flex-start;">
+                            <div style="width: 16px; height: 16px; border-radius: 4px; background: linear-gradient(135deg, #0F172A, #1E293B);"></div>
+                            Corporate
+                        </button>
+                        <button class="btn btn-secondary" onclick="changeTheme('business')" style="justify-content: flex-start;">
+                            <div style="width: 16px; height: 16px; border-radius: 4px; background: linear-gradient(135deg, #047857, #059669);"></div>
+                            Business
+                        </button>
+                        <button class="btn btn-secondary" onclick="changeTheme('premium')" style="justify-content: flex-start;">
+                            <div style="width: 16px; height: 16px; border-radius: 4px; background: linear-gradient(135deg, #6366F1, #8B5CF6);"></div>
+                            Premium
+                        </button>
+                        <button class="btn btn-secondary" onclick="changeTheme('darkpro')" style="justify-content: flex-start;">
+                            <div style="width: 16px; height: 16px; border-radius: 4px; background: linear-gradient(135deg, #0EA5E9, #F97316);"></div>
+                            Dark Pro
+                        </button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <svg class="icon icon-lg">
+                                <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path>
+                                <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                            </svg>
+                            Voz
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Velocidad de respuesta</label>
+                        <input type="range" min="0.8" max="1.5" step="0.1" value="1.0" style="width: 100%;" id="voice-speed">
+                        <div style="text-align: center; margin-top: 8px; font-size: 14px; font-weight: 600; color: var(--accent);" id="speed-value">
+                            Normal (1.0x)
+                        </div>
+                    </div>
+                    <div class="checkbox-container">
+                        <div class="checkbox checked">
+                            <svg class="icon" style="width: 14px; height: 14px; stroke: white;">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                        </div>
+                        <span style="font-size: 14px;">Siempre pedir confirmación</span>
+                    </div>
+                    <div class="checkbox-container">
+                        <div class="checkbox checked">
+                            <svg class="icon" style="width: 14px; height: 14px; stroke: white;">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                        </div>
+                        <span style="font-size: 14px;">Activar sugerencias de venta</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <svg class="icon icon-lg">
+                                <path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                            </svg>
+                            Personalizar marca
+                        </div>
+                    </div>
+                    <div style="font-size: 13px; color: var(--text-light); margin-bottom: 12px;">
+                        Edita el encabezado de tu negocio
+                    </div>
+                    <button class="btn btn-primary">
+                        <svg class="icon">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                            <path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                        </svg>
+                        Editar cabecera
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SCREEN 7: DETALLE PRODUCTO (CLIENTE) -->
+        <div class="screen" id="screen-product-detail">
+            <div class="header">
+                <button class="icon-btn" onclick="showScreen('screen-catalog')">
+                    <svg class="icon">
+                        <path d="M19 12H5M12 19l-7-7 7-7"></path>
+                    </svg>
+                </button>
+                <div class="header-info">
+                    <div class="store-name">Inca Kola 1L</div>
+                    <div class="store-meta">Detalles del producto</div>
+                </div>
+            </div>
+
+            <div class="content">
+                <div style="width: 120px; height: 120px; margin: 0 auto 24px; border-radius: 20px; background: linear-gradient(135deg, var(--accent), var(--accent-light)); display: flex; align-items: center; justify-content: center; color: white; font-size: 48px; font-weight: 700; box-shadow: 0 8px 24px var(--shadow);">
+                    IK
+                </div>
+
+                <div class="card">
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <div style="font-size: 24px; font-weight: 700; color: var(--text); margin-bottom: 8px;">Inca Kola 1 Litro</div>
+                        <div style="font-size: 14px; color: var(--text-light); margin-bottom: 16px;">Bebidas • Gaseosas</div>
+                        <div style="font-size: 36px; font-weight: 700; color: var(--primary);">S/ 3.50</div>
+                    </div>
+
+                    <div style="padding: 16px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); margin-bottom: 20px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                            <span style="font-size: 14px; color: var(--text-light);">Disponibilidad</span>
+                            <span style="font-size: 14px; font-weight: 600; color: var(--success);">En stock (24 unidades)</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span style="font-size: 14px; color: var(--text-light);">Categoría</span>
+                            <span style="font-size: 14px; font-weight: 600; color: var(--text);">Bebidas</span>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label class="input-label">Cantidad</label>
+                        <div style="display: flex; gap: 12px; align-items: center;">
+                            <button class="btn btn-secondary" style="flex: 0 0 48px; padding: 12px;">
+                                <svg class="icon">
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                </svg>
+                            </button>
+                            <input type="number" class="input" value="1" style="text-align: center; flex: 1;">
+                            <button class="btn btn-secondary" style="flex: 0 0 48px; padding: 12px;">
+                                <svg class="icon">
+                                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-actions">
+                <button class="btn btn-primary" style="width: 100%;">
+                    <svg class="icon">
+                        <circle cx="9" cy="21" r="1"></circle>
+                        <circle cx="20" cy="21" r="1"></circle>
+                        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                    </svg>
+                    Agregar al carrito
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FAB SELECTOR DE TEMA -->
+    <button class="theme-fab" onclick="toggleThemeMenu()">
+        <svg class="icon icon-lg">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="9" y1="3" x2="9" y2="21"></line>
+        </svg>
+    </button>
+    <div class="theme-menu" id="theme-menu">
+        <button class="theme-option" onclick="changeTheme('corporate')" style="background: #F8FAFC; color: #0F172A;">
+            <div style="width: 20px; height: 20px; border-radius: 6px; background: linear-gradient(135deg, #0F172A, #1E293B);"></div>
+            Corporate
+        </button>
+        <button class="theme-option" onclick="changeTheme('business')" style="background: #F0FDF4; color: #047857;">
+            <div style="width: 20px; height: 20px; border-radius: 6px; background: linear-gradient(135deg, #047857, #059669);"></div>
+            Business
+        </button>
+        <button class="theme-option" onclick="changeTheme('premium')" style="background: #F5F3FF; color: #6366F1;">
+            <div style="width: 20px; height: 20px; border-radius: 6px; background: linear-gradient(135deg, #6366F1, #8B5CF6);"></div>
+            Premium
+        </button>
+        <button class="theme-option" onclick="changeTheme('darkpro')" style="background: #1E293B; color: #0EA5E9;">
+            <div style="width: 20px; height: 20px; border-radius: 6px; background: linear-gradient(135deg, #0EA5E9, #F97316);"></div>
+            Dark Pro
+        </button>
+    </div>
+
+    <script>
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        function changeTheme(theme) {
+            document.body.className = 'theme-' + theme;
+            document.getElementById('theme-menu').classList.remove('active');
+        }
+
+        function toggleThemeMenu() {
+            document.getElementById('theme-menu').classList.toggle('active');
+        }
+
+        document.getElementById('voice-speed')?.addEventListener('input', function(e) {
+            const value = parseFloat(e.target.value);
+            let label = 'Normal';
+            if (value < 1.0) label = 'Lenta';
+            if (value > 1.0) label = 'Rápida';
+            document.getElementById('speed-value').textContent = `${label} (${value}x)`;
+        });
+
+        document.addEventListener('click', function(e) {
+            const themeFab = document.querySelector('.theme-fab');
+            const themeMenu = document.getElementById('theme-menu');
+            if (!themeFab.contains(e.target) && !themeMenu.contains(e.target)) {
+                themeMenu.classList.remove('active');
+            }
+        });
+
+        // Atajos de teclado para testing
+        document.addEventListener('keydown', function(e) {
+            if (e.key === '1') showScreen('screen-vendor');
+            if (e.key === '2') showScreen('screen-catalog');
+            if (e.key === '3') showScreen('screen-orders');
+            if (e.key === '4') showScreen('screen-products');
+            if (e.key === '5') showScreen('screen-listening');
+            if (e.key === '6') showScreen('screen-config');
+            if (e.key === '7') showScreen('screen-product-detail');
+        });
+    </script>
+</body>
+</html>

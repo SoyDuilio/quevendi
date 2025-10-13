@@ -1,0 +1,1324 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>QueVendí - Mockup PWA</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            transition: background-color 0.3s ease;
+            overflow-x: hidden;
+        }
+
+        /* TEMAS */
+        .theme-tradicional {
+            --primary: #C1440E;
+            --secondary: #F4A836;
+            --bg: #FFF8E7;
+            --card-bg: #FFFFFF;
+            --text: #3E2723;
+            --text-light: #6D4C41;
+            --border: #BCAAA4;
+        }
+
+        .theme-tech {
+            --primary: #2563EB;
+            --secondary: #7C3AED;
+            --bg: #F8FAFC;
+            --card-bg: #FFFFFF;
+            --text: #1E293B;
+            --text-light: #64748B;
+            --border: #E2E8F0;
+        }
+
+        .theme-natura {
+            --primary: #059669;
+            --secondary: #84CC16;
+            --bg: #FFFFFF;
+            --card-bg: #F0FDF4;
+            --text: #14532D;
+            --text-light: #166534;
+            --border: #BBF7D0;
+        }
+
+        .theme-noche {
+            --primary: #FF6B35;
+            --secondary: #06B6D4;
+            --bg: #18181B;
+            --card-bg: #27272A;
+            --text: #FAFAFA;
+            --text-light: #A1A1AA;
+            --border: #3F3F46;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        .container {
+            max-width: 420px;
+            margin: 0 auto;
+            min-height: 100vh;
+            background: var(--bg);
+        }
+
+        /* HEADER PERSONALIZABLE */
+        .header {
+            background: linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%);
+            padding: 20px 16px 24px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .user-avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #E0E7FF 0%, #C7D2FE 100%);
+            border: 3px solid #FFFFFF;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: 700;
+            color: #1E40AF;
+            flex-shrink: 0;
+        }
+
+        .header-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .store-name {
+            font-size: 20px;
+            font-weight: 700;
+            color: #FFFFFF;
+            line-height: 1.2;
+            margin-bottom: 4px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .store-address {
+            font-size: 13px;
+            color: rgba(255,255,255,0.9);
+            line-height: 1.3;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .icon-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: #FFFFFF;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .icon-btn:active {
+            background: rgba(255,255,255,0.3);
+            transform: scale(0.95);
+        }
+
+        /* CONTENIDO */
+        .content {
+            padding: 20px 16px;
+        }
+
+        /* BOTÓN DE VOZ PRINCIPAL */
+        .voice-button-container {
+            text-align: center;
+            margin: 24px 0 32px;
+        }
+
+        .voice-button {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 20px 40px;
+            font-size: 18px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            transition: all 0.3s;
+            width: 100%;
+            max-width: 300px;
+            justify-content: center;
+        }
+
+        .voice-button:active {
+            transform: scale(0.98);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .voice-button.listening {
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .wave-animation {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .wave-bar {
+            width: 3px;
+            height: 16px;
+            background: white;
+            border-radius: 2px;
+            animation: wave 1s infinite ease-in-out;
+        }
+
+        .wave-bar:nth-child(2) { animation-delay: 0.1s; }
+        .wave-bar:nth-child(3) { animation-delay: 0.2s; }
+        .wave-bar:nth-child(4) { animation-delay: 0.3s; }
+        .wave-bar:nth-child(5) { animation-delay: 0.4s; }
+
+        @keyframes wave {
+            0%, 100% { height: 8px; }
+            50% { height: 20px; }
+        }
+
+        /* DIVISOR */
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin: 24px 0;
+            color: var(--text-light);
+            font-size: 14px;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        /* BÚSQUEDA */
+        .search-box {
+            position: relative;
+            margin-bottom: 24px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 14px 16px 14px 44px;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            font-size: 15px;
+            background: var(--card-bg);
+            color: var(--text);
+            transition: all 0.2s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-light);
+            font-size: 18px;
+        }
+
+        /* TARJETA RESUMEN */
+        .summary-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            margin-bottom: 24px;
+            border: 1px solid var(--border);
+        }
+
+        .summary-header {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-light);
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .summary-amount {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 12px;
+        }
+
+        .summary-stats {
+            display: flex;
+            gap: 20px;
+            font-size: 14px;
+            color: var(--text-light);
+        }
+
+        .summary-stat {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .view-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--primary);
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: 12px;
+            text-decoration: none;
+        }
+
+        /* ACCESOS RÁPIDOS */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .quick-action {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quick-action:active {
+            transform: scale(0.95);
+            background: var(--primary);
+            color: white;
+        }
+
+        .quick-action-icon {
+            font-size: 24px;
+            margin-bottom: 6px;
+        }
+
+        .quick-action-label {
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        /* MODAL DE VENTA */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.6);
+            display: none;
+            align-items: flex-end;
+            z-index: 1000;
+            animation: fadeIn 0.3s;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background: var(--bg);
+            width: 100%;
+            max-width: 420px;
+            margin: 0 auto;
+            border-radius: 24px 24px 0 0;
+            padding: 24px 16px 32px;
+            animation: slideUp 0.3s;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        .modal-header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+
+        .modal-subtitle {
+            font-size: 14px;
+            color: var(--text-light);
+        }
+
+        /* TRANSCRIPCIÓN */
+        .transcription {
+            background: var(--card-bg);
+            border: 2px dashed var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            min-height: 60px;
+            margin-bottom: 20px;
+            font-size: 15px;
+            color: var(--text-light);
+            font-style: italic;
+        }
+
+        /* CARRITO */
+        .cart-item {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+
+        .cart-item-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .cart-item-icon {
+            font-size: 28px;
+            flex-shrink: 0;
+        }
+
+        .cart-item-info {
+            flex: 1;
+        }
+
+        .cart-item-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+
+        .cart-item-price {
+            font-size: 14px;
+            color: var(--text-light);
+        }
+
+        .cart-item-controls {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+        }
+
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .qty-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--card-bg);
+            color: var(--text);
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .qty-btn:active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .qty-value {
+            font-size: 18px;
+            font-weight: 600;
+            min-width: 32px;
+            text-align: center;
+        }
+
+        .cart-item-subtotal {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .delete-btn {
+            background: none;
+            border: none;
+            color: #EF4444;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        /* CLIENTE FIADO */
+        .customer-input {
+            margin-bottom: 20px;
+        }
+
+        .customer-input label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+
+        .customer-input input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            font-size: 15px;
+            background: var(--card-bg);
+            color: var(--text);
+        }
+
+        .customer-input input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .customer-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+            cursor: pointer;
+        }
+
+        .checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .checkbox.checked {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        /* PAGO */
+        .payment-methods {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .payment-btn {
+            background: var(--card-bg);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 16px 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .payment-btn.selected {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        .payment-icon {
+            font-size: 24px;
+            margin-bottom: 6px;
+        }
+
+        .payment-label {
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        /* SUGERENCIA UPSELL */
+        .suggestion-card {
+            background: linear-gradient(135deg, rgba(255,107,53,0.1) 0%, rgba(255,107,53,0.05) 100%);
+            border: 2px solid #FF6B35;
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .suggestion-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .suggestion-icon {
+            font-size: 24px;
+        }
+
+        .suggestion-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #FF6B35;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .suggestion-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: var(--card-bg);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .suggestion-item:active {
+            transform: scale(0.98);
+        }
+
+        .suggestion-checkbox {
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.2s;
+        }
+
+        .suggestion-checkbox.checked {
+            background: #FF6B35;
+            border-color: #FF6B35;
+            color: white;
+        }
+
+        .suggestion-product {
+            flex: 1;
+        }
+
+        .suggestion-product-name {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 2px;
+        }
+
+        .suggestion-reason {
+            font-size: 12px;
+            color: var(--text-light);
+            font-style: italic;
+        }
+
+        .suggestion-price {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--primary);
+            flex-shrink: 0;
+        }
+
+        /* BOTONES DE ACCIÓN */
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 2px solid var(--border);
+            color: var(--text);
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        /* SELECTOR DE TEMA */
+        .theme-selector {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 999;
+        }
+
+        .theme-toggle {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+        }
+
+        .theme-toggle:active {
+            transform: scale(0.95);
+        }
+
+        .theme-options {
+            position: absolute;
+            bottom: 70px;
+            right: 0;
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            display: none;
+            gap: 8px;
+            flex-direction: column;
+            border: 1px solid var(--border);
+        }
+
+        .theme-options.active {
+            display: flex;
+        }
+
+        .theme-option {
+            padding: 12px 20px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            text-align: left;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            white-space: nowrap;
+        }
+
+        .theme-option:active {
+            transform: scale(0.98);
+        }
+
+        .theme-tradicional-btn {
+            background: #FFF8E7;
+            color: #C1440E;
+        }
+
+        .theme-tech-btn {
+            background: #EFF6FF;
+            color: #2563EB;
+        }
+
+        .theme-natura-btn {
+            background: #F0FDF4;
+            color: #059669;
+        }
+
+        .theme-noche-btn {
+            background: #27272A;
+            color: #FF6B35;
+        }
+
+        /* CONFIRMACIÓN */
+        .confirmation {
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        .success-icon {
+            font-size: 64px;
+            color: #10B981;
+            margin-bottom: 16px;
+        }
+
+        .confirmation-amount {
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 8px;
+        }
+
+        .confirmation-details {
+            font-size: 14px;
+            color: var(--text-light);
+            margin-bottom: 24px;
+        }
+
+        /* NAVEGACIÓN */
+        .nav-buttons {
+            display: flex;
+            gap: 8px;
+            margin-top: 20px;
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+    </style>
+</head>
+<body class="theme-tech">
+    <div class="container">
+        <!-- SCREEN 1: HOME / VENDER -->
+        <div class="screen active" id="screen-home">
+            <div class="header">
+                <div class="user-avatar">H</div>
+                <div class="header-info">
+                    <div class="store-name">Bodega Hilda</div>
+                    <div class="store-address">Av. Los Pinos 123, Surco</div>
+                </div>
+                <div class="header-actions">
+                    <button class="icon-btn" onclick="showScreen('screen-config')">⚙️</button>
+                </div>
+            </div>
+
+            <div class="content">
+                <div class="voice-button-container">
+                    <button class="voice-button" onclick="showScreen('screen-listening')">
+                        <span>🎤</span>
+                        <span>VENDER POR VOZ</span>
+                    </button>
+                </div>
+
+                <div class="divider">o</div>
+
+                <div class="search-box">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" class="search-input" placeholder="Buscar producto...">
+                </div>
+
+                <div class="summary-card">
+                    <div class="summary-header">Ventas de hoy</div>
+                    <div class="summary-amount">S/ 245.50</div>
+                    <div class="summary-stats">
+                        <div class="summary-stat">
+                            <span>📊</span>
+                            <span>18 ventas</span>
+                        </div>
+                        <div class="summary-stat">
+                            <span>👤</span>
+                            <span>2 vendedores</span>
+                        </div>
+                    </div>
+                    <a href="#" class="view-link">Ver detalle →</a>
+                </div>
+
+                <div class="quick-actions">
+                    <div class="quick-action">
+                        <div class="quick-action-icon">📦</div>
+                        <div class="quick-action-label">Stock</div>
+                    </div>
+                    <div class="quick-action">
+                        <div class="quick-action-icon">📋</div>
+                        <div class="quick-action-label">Compras</div>
+                    </div>
+                    <div class="quick-action">
+                        <div class="quick-action-icon">📊</div>
+                        <div class="quick-action-label">Reportes</div>
+                    </div>
+                    <div class="quick-action">
+                        <div class="quick-action-icon">👥</div>
+                        <div class="quick-action-label">Clientes</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SCREEN 2: ESCUCHANDO -->
+        <div class="screen" id="screen-listening">
+            <div class="header">
+                <div class="user-avatar">H</div>
+                <div class="header-info">
+                    <div class="store-name">Bodega Hilda</div>
+                    <div class="store-address">Av. Los Pinos 123, Surco</div>
+                </div>
+            </div>
+
+            <div class="modal active">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <div class="modal-title">🎤 ESCUCHANDO...</div>
+                        <div class="modal-subtitle">Di el producto y cantidad</div>
+                    </div>
+
+                    <div class="voice-button-container">
+                        <button class="voice-button listening">
+                            <div class="wave-animation">
+                                <div class="wave-bar"></div>
+                                <div class="wave-bar"></div>
+                                <div class="wave-bar"></div>
+                                <div class="wave-bar"></div>
+                                <div class="wave-bar"></div>
+                            </div>
+                        </button>
+                    </div>
+
+                    <div class="transcription">
+                        "vender dos inca kola de un litro..."
+                    </div>
+
+                    <button class="btn btn-secondary" onclick="showScreen('screen-home')">
+                        ✖️ Cancelar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SCREEN 3: CONFIRMACIÓN DE CARRITO -->
+        <div class="screen" id="screen-cart">
+            <div class="header">
+                <div class="user-avatar">H</div>
+                <div class="header-info">
+                    <div class="store-name">Bodega Hilda</div>
+                    <div class="store-address">Av. Los Pinos 123, Surco</div>
+                </div>
+            </div>
+
+            <div class="modal active">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <div class="modal-title">✅ CARRITO</div>
+                        <div class="modal-subtitle">Confirma los productos</div>
+                    </div>
+
+                    <div class="cart-item">
+                        <div class="cart-item-header">
+                            <div class="cart-item-icon">🥤</div>
+                            <div class="cart-item-info">
+                                <div class="cart-item-name">Inca Kola 1L</div>
+                                <div class="cart-item-price">S/ 3.50 c/u</div>
+                            </div>
+                        </div>
+                        <div class="cart-item-controls">
+                            <div class="quantity-controls">
+                                <button class="qty-btn">−</button>
+                                <div class="qty-value">2</div>
+                                <button class="qty-btn">+</button>
+                            </div>
+                            <div class="cart-item-subtotal">S/ 7.00</div>
+                            <button class="delete-btn">🗑️</button>
+                        </div>
+                    </div>
+
+                    <!-- SUGERENCIA UPSELL -->
+                    <div class="suggestion-card">
+                        <div class="suggestion-header">
+                            <span class="suggestion-icon">💡</span>
+                            <span class="suggestion-title">Sugerencia</span>
+                        </div>
+                        <div class="suggestion-item" onclick="toggleSuggestion(this)">
+                            <div class="suggestion-checkbox">
+                                <span style="display: none;">✓</span>
+                            </div>
+                            <div class="suggestion-product">
+                                <div class="suggestion-product-name">🍪 Galletas Soda</div>
+                                <div class="suggestion-reason">Van bien con bebidas</div>
+                            </div>
+                            <div class="suggestion-price">S/ 2.50</div>
+                        </div>
+                    </div>
+
+                    <!-- CLIENTE FIADO -->
+                    <div class="customer-input">
+                        <div class="customer-toggle" onclick="toggleFiado()">
+                            <div class="checkbox" id="fiado-checkbox">
+                                <span style="display: none;">✓</span>
+                            </div>
+                            <label style="cursor: pointer; margin: 0;">¿Es venta fiada?</label>
+                        </div>
+                        <div id="customer-name-input" style="display: none;">
+                            <input type="text" placeholder="Nombre del cliente">
+                        </div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button class="btn btn-secondary" onclick="showScreen('screen-home')">Cancelar</button>
+                        <button class="btn btn-primary" onclick="showScreen('screen-payment')">
+                            Continuar →
+                        </button>
+                    </div>
+
+                    <button class="btn btn-secondary" style="margin-top: 12px; background: transparent; border: none; color: var(--primary);" onclick="showScreen('screen-listening')">
+                        🎤 Agregar más por voz
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SCREEN 4: PAGO -->
+        <div class="screen" id="screen-payment">
+            <div class="header">
+                <div class="user-avatar">H</div>
+                <div class="header-info">
+                    <div class="store-name">Bodega Hilda</div>
+                    <div class="store-address">Av. Los Pinos 123, Surco</div>
+                </div>
+            </div>
+
+            <div class="modal active">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <div class="modal-title">TOTAL A COBRAR</div>
+                    </div>
+
+                    <div style="text-align: center; margin: 24px 0;">
+                        <div style="font-size: 48px; font-weight: 700; color: var(--primary);">S/ 9.50</div>
+                        <div style="font-size: 14px; color: var(--text-light); margin-top: 8px;">2 productos</div>
+                    </div>
+
+                    <div class="modal-subtitle" style="text-align: center; margin-bottom: 16px;">
+                        ¿CÓMO PAGA?
+                    </div>
+
+                    <div class="payment-methods">
+                        <div class="payment-btn" onclick="selectPayment(this)">
+                            <div class="payment-icon">💵</div>
+                            <div class="payment-label">Efectivo</div>
+                        </div>
+                        <div class="payment-btn" onclick="selectPayment(this)">
+                            <div class="payment-icon">📱</div>
+                            <div class="payment-label">Yape</div>
+                        </div>
+                        <div class="payment-btn" onclick="selectPayment(this)">
+                            <div class="payment-icon">💳</div>
+                            <div class="payment-label">Plin</div>
+                        </div>
+                    </div>
+
+                    <div class="divider" style="margin: 20px 0;">o</div>
+
+                    <button class="voice-button" style="width: 100%; max-width: 100%;">
+                        <span>🎤</span>
+                        <span>DECIR FORMA DE PAGO</span>
+                    </button>
+
+                    <div class="action-buttons" style="margin-top: 24px;">
+                        <button class="btn btn-secondary" onclick="showScreen('screen-cart')">← Volver</button>
+                        <button class="btn btn-primary" onclick="showScreen('screen-success')">
+                            ✅ Confirmar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SCREEN 5: ÉXITO -->
+        <div class="screen" id="screen-success">
+            <div class="header">
+                <div class="user-avatar">H</div>
+                <div class="header-info">
+                    <div class="store-name">Bodega Hilda</div>
+                    <div class="store-address">Av. Los Pinos 123, Surco</div>
+                </div>
+            </div>
+
+            <div class="modal active">
+                <div class="modal-content">
+                    <div class="confirmation">
+                        <div class="success-icon">✅</div>
+                        <div class="modal-title">VENTA REGISTRADA</div>
+                        <div class="confirmation-amount">S/ 9.50</div>
+                        <div class="confirmation-details">
+                            Yape (5432)<br>
+                            Hoy 10:45 AM
+                        </div>
+
+                        <div class="summary-card" style="text-align: left;">
+                            <div class="summary-header">Ventas actualizadas</div>
+                            <div class="summary-amount">S/ 255.00</div>
+                            <div class="summary-stats">
+                                <div class="summary-stat">
+                                    <span>📊</span>
+                                    <span>19 ventas</span>
+                                </div>
+                                <div class="summary-stat">
+                                    <span>⬆️</span>
+                                    <span>+S/ 9.50</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="action-buttons">
+                            <button class="btn btn-secondary">
+                                📋 Ver ventas
+                            </button>
+                            <button class="btn btn-primary" onclick="showScreen('screen-home')">
+                                🎤 Nueva venta
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SCREEN 6: CONFIGURACIÓN -->
+        <div class="screen" id="screen-config">
+            <div class="header">
+                <div class="user-avatar">H</div>
+                <div class="header-info">
+                    <div class="store-name">Bodega Hilda</div>
+                    <div class="store-address">Av. Los Pinos 123, Surco</div>
+                </div>
+                <div class="header-actions">
+                    <button class="icon-btn" onclick="showScreen('screen-home')">✖️</button>
+                </div>
+            </div>
+
+            <div class="content">
+                <div class="summary-card">
+                    <div class="summary-header">👤 Usuario</div>
+                    <div style="font-size: 18px; font-weight: 600; color: var(--text); margin-bottom: 4px;">Hilda (Dueña)</div>
+                    <div style="font-size: 14px; color: var(--text-light);">DNI: 12345678</div>
+                </div>
+
+                <div class="summary-card">
+                    <div class="summary-header">🎨 TEMA VISUAL</div>
+                    <div style="font-size: 14px; color: var(--text-light); margin-bottom: 16px;">
+                        Elige el estilo que más te guste
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+                        <button class="theme-option theme-tradicional-btn" onclick="changeTheme('tradicional')">
+                            🏪 Tradicional
+                        </button>
+                        <button class="theme-option theme-tech-btn" onclick="changeTheme('tech')">
+                            💻 Tech
+                        </button>
+                        <button class="theme-option theme-natura-btn" onclick="changeTheme('natura')">
+                            🌿 Natura
+                        </button>
+                        <button class="theme-option theme-noche-btn" onclick="changeTheme('noche')">
+                            🌃 Noche
+                        </button>
+                    </div>
+                </div>
+
+                <div class="summary-card">
+                    <div class="summary-header">🔊 CONFIGURACIÓN DE VOZ</div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; font-size: 14px; font-weight: 600; margin-bottom: 8px; color: var(--text);">
+                            Velocidad de respuesta
+                        </label>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <span style="font-size: 12px; color: var(--text-light);">Lenta</span>
+                            <input type="range" min="0.8" max="1.5" step="0.1" value="1.0" style="flex: 1;" id="voice-speed">
+                            <span style="font-size: 12px; color: var(--text-light);">Rápida</span>
+                        </div>
+                        <div style="text-align: center; margin-top: 8px; font-size: 16px; font-weight: 600; color: var(--primary);" id="speed-value">
+                            Normal (1.0x)
+                        </div>
+                    </div>
+
+                    <div class="customer-toggle" style="margin-bottom: 16px;">
+                        <div class="checkbox checked">
+                            <span>✓</span>
+                        </div>
+                        <label style="cursor: pointer; margin: 0; font-size: 14px;">Siempre pedir confirmación</label>
+                    </div>
+
+                    <div class="customer-toggle">
+                        <div class="checkbox checked">
+                            <span>✓</span>
+                        </div>
+                        <label style="cursor: pointer; margin: 0; font-size: 14px;">Activar sugerencias de venta</label>
+                    </div>
+                </div>
+
+                <div class="summary-card">
+                    <div class="summary-header">🎨 PERSONALIZAR MARCA</div>
+                    <div style="font-size: 14px; color: var(--text-light); margin-bottom: 12px;">
+                        Solo disponible para el dueño
+                    </div>
+                    <button class="btn btn-primary" style="width: 100%;">
+                        ✏️ Editar cabecera
+                    </button>
+                </div>
+
+                <button class="btn btn-secondary" onclick="showScreen('screen-home')" style="width: 100%; margin-top: 20px;">
+                    ← Volver al inicio
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SELECTOR DE TEMA FLOTANTE -->
+    <div class="theme-selector">
+        <div class="theme-options" id="theme-menu">
+            <button class="theme-option theme-tradicional-btn" onclick="changeTheme('tradicional')">
+                🏪 Tradicional
+            </button>
+            <button class="theme-option theme-tech-btn" onclick="changeTheme('tech')">
+                💻 Tech
+            </button>
+            <button class="theme-option theme-natura-btn" onclick="changeTheme('natura')">
+                🌿 Natura
+            </button>
+            <button class="theme-option theme-noche-btn" onclick="changeTheme('noche')">
+                🌃 Noche
+            </button>
+        </div>
+        <button class="theme-toggle" onclick="toggleThemeMenu()">
+            🎨
+        </button>
+    </div>
+
+    <script>
+        // Navegación entre pantallas
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        // Cambio de tema
+        function changeTheme(theme) {
+            document.body.className = 'theme-' + theme;
+            document.getElementById('theme-menu').classList.remove('active');
+        }
+
+        function toggleThemeMenu() {
+            document.getElementById('theme-menu').classList.toggle('active');
+        }
+
+        // Toggle sugerencia
+        function toggleSuggestion(element) {
+            const checkbox = element.querySelector('.suggestion-checkbox');
+            const checkmark = checkbox.querySelector('span');
+            checkbox.classList.toggle('checked');
+            checkmark.style.display = checkbox.classList.contains('checked') ? 'block' : 'none';
+        }
+
+        // Toggle fiado
+        function toggleFiado() {
+            const checkbox = document.getElementById('fiado-checkbox');
+            const checkmark = checkbox.querySelector('span');
+            const input = document.getElementById('customer-name-input');
+            
+            checkbox.classList.toggle('checked');
+            checkmark.style.display = checkbox.classList.contains('checked') ? 'block' : 'none';
+            input.style.display = checkbox.classList.contains('checked') ? 'block' : 'none';
+        }
+
+        // Seleccionar pago
+        function selectPayment(element) {
+            document.querySelectorAll('.payment-btn').forEach(btn => btn.classList.remove('selected'));
+            element.classList.add('selected');
+        }
+
+        // Control de velocidad de voz
+        document.getElementById('voice-speed')?.addEventListener('input', function(e) {
+            const value = parseFloat(e.target.value);
+            let label = 'Normal';
+            if (value < 1.0) label = 'Lenta';
+            if (value > 1.0) label = 'Rápida';
+            document.getElementById('speed-value').textContent = `${label} (${value}x)`;
+        });
+
+        // Cerrar menú de temas al hacer clic fuera
+        document.addEventListener('click', function(e) {
+            const themeSelector = document.querySelector('.theme-selector');
+            const themeMenu = document.getElementById('theme-menu');
+            if (!themeSelector.contains(e.target) && themeMenu.classList.contains('active')) {
+                themeMenu.classList.remove('active');
+            }
+        });
+
+        // Simular navegación rápida con teclas (útil para testing en desktop)
+        document.addEventListener('keydown', function(e) {
+            if (e.key === '1') showScreen('screen-home');
+            if (e.key === '2') showScreen('screen-listening');
+            if (e.key === '3') showScreen('screen-cart');
+            if (e.key === '4') showScreen('screen-payment');
+            if (e.key === '5') showScreen('screen-success');
+            if (e.key === '6') showScreen('screen-config');
+        });
+    </script>
+</body>
+</html>

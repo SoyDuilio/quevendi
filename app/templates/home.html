@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0F172A">
+    <title>QueVendí PRO</title>
+    
+    <!-- HTMX -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <link rel="stylesheet" href="/static/css/voice_simple.css">
+</head>
+<body class="theme-darkpro">
+    <div class="container">
+        <!-- HEADER FIJO -->
+        <div class="header">
+            <div class="user-avatar">{{ user.full_name[0] }}</div>
+            <div class="header-info">
+                <div class="store-name">{{ store.commercial_name }}</div>
+                <div class="store-meta">{{ user.full_name }}</div>
+            </div>
+            <div class="header-actions">
+                <button class="icon-btn" onclick="openCommandsModal()" title="Ver comandos de voz">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                </button>
+                <button class="icon-btn" onclick="window.location.href='/auth/logout'">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                        <polyline points="16 17 21 12 16 7"></polyline>
+                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- ESTADO DEL MICRÓFONO -->
+        <div class="voice-header">
+            <div id="mic-status" class="mic-status">🎤 INICIANDO...</div>
+            <div class="payment-selector">
+                <button class="payment-btn active" data-method="efectivo" title="Efectivo">💵</button>
+                <button class="payment-btn" data-method="yape" title="Yape">💳</button>
+                <button class="payment-btn" data-method="plin" title="Plin">📱</button>
+            </div>
+        </div>
+
+        <!-- STICKY SECTION: Resumen + Botones -->
+        <div class="sticky-section">
+            <!-- Resumen del día -->
+            <div class="summary-compact" id="daily-summary" 
+                 hx-get="/sales/today/total" 
+                 hx-trigger="load, every 10s"
+                 hx-swap="innerHTML">
+                <div class="card-loading">Cargando...</div>
+            </div>
+
+            <!-- Botones de acceso rápido -->
+            <div class="quick-grid">
+                <div class="quick-card" onclick="window.location.href='/products/manage'">
+                    <div class="quick-icon">
+                        <svg class="icon icon-lg" viewBox="0 0 24 24">
+                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                        </svg>
+                    </div>
+                    <div class="quick-label">Productos</div>
+                </div>
+                <div class="quick-card" onclick="alert('Próximamente...')">
+                    <div class="quick-icon">
+                        <svg class="icon icon-lg" viewBox="0 0 24 24">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                        </svg>
+                    </div>
+                    <div class="quick-label">Compras</div>
+                </div>
+                <div class="quick-card" onclick="alert('Próximamente...')">
+                    <div class="quick-icon">
+                        <svg class="icon icon-lg" viewBox="0 0 24 24">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
+                    </div>
+                    <div class="quick-label">Clientes</div>
+                </div>
+                <div class="quick-card" onclick="alert('Próximamente...')">
+                    <div class="quick-icon">
+                        <svg class="icon icon-lg" viewBox="0 0 24 24">
+                            <line x1="12" y1="1" x2="12" y2="23"></line>
+                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                        </svg>
+                    </div>
+                    <div class="quick-label">Reportes</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CONTENT SCROLLABLE -->
+        <div class="content-scrollable">
+            <!-- Transcripción flotante -->
+            <div id="transcript" style="display:none;"></div>
+
+            <!-- CARRITO DE COMPRAS -->
+            <div id="cart-display" class="cart-display">
+                <div class="cart-empty">
+                    <div class="empty-icon">🛒</div>
+                    <div class="empty-text">Carrito vacío</div>
+                    <div class="empty-hint">Di: "un café y 10 panes"</div>
+                </div>
+            </div>
+
+            <!-- Ventas recientes -->
+            <div class="section-header">
+                <h3>Ventas recientes</h3>
+            </div>
+            <div id="sales-list" 
+                 hx-get="/sales/today" 
+                 hx-trigger="load, salesUpdated from:body"
+                 hx-swap="innerHTML">
+                <div class="card-loading">Cargando ventas...</div>
+            </div>
+        </div>
+
+        <!-- BOTONES DE ACCIÓN (FOOTER) -->
+        <div class="action-buttons">
+            <button class="action-btn cancel" onclick="handleVoiceCommand('cancelar')">
+                <span class="btn-icon">🔴</span>
+                <span>CANCELAR</span>
+            </button>
+            <button class="action-btn change" onclick="openCommandsModal()">
+                <span class="btn-icon">📋</span>
+                <span>COMANDOS</span>
+            </button>
+            <button class="action-btn confirm" onclick="handleVoiceCommand('confirmar')">
+                <span class="btn-icon">✅</span>
+                <span>CONFIRMAR</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- MODAL DE COMANDOS DE VOZ -->
+    <div id="voice-commands-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📋 Comandos de Voz</h2>
+                <button class="modal-close" onclick="closeCommandsModal()">✕</button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="command-section">
+                    <h3>🛒 Ventas</h3>
+                    <div class="command-list">
+                        <div class="command-item">
+                            <div class="command-phrase">"un café y 10 panes"</div>
+                            <div class="command-desc">Agregar productos al carrito</div>
+                        </div>
+                        <div class="command-item">
+                            <div class="command-phrase">"agregar una inca kola"</div>
+                            <div class="command-desc">Agregar más productos</div>
+                        </div>
+                        <div class="command-item">
+                            <div class="command-phrase">"medio kilo de azúcar"</div>
+                            <div class="command-desc">Cantidades con fracciones</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="command-section">
+                    <h3>✅ Confirmar / Cancelar</h3>
+                    <div class="command-list">
+                        <div class="command-item">
+                            <div class="command-phrase">"listo" / "total" / "confirmar"</div>
+                            <div class="command-desc">Confirmar y guardar venta</div>
+                        </div>
+                        <div class="command-item">
+                            <div class="command-phrase">"cancelar" / "anular"</div>
+                            <div class="command-desc">Cancelar venta actual</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="command-section">
+                    <h3>✏️ Modificaciones</h3>
+                    <div class="command-list">
+                        <div class="command-item">
+                            <div class="command-phrase">"cambiar café por inca kola"</div>
+                            <div class="command-desc">Cambiar un producto</div>
+                        </div>
+                        <div class="command-item">
+                            <div class="command-phrase">"cambiar precio azúcar a dos soles"</div>
+                            <div class="command-desc">Ajustar precio de producto</div>
+                        </div>
+                        <div class="command-item">
+                            <div class="command-phrase">"quitar pan"</div>
+                            <div class="command-desc">Eliminar producto del carrito</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="command-section">
+                    <h3>💡 Fracciones</h3>
+                    <div class="command-list">
+                        <div class="command-item">
+                            <div class="command-phrase">"medio" / "media"</div>
+                            <div class="command-desc">0.5 unidades</div>
+                        </div>
+                        <div class="command-item">
+                            <div class="command-phrase">"un cuarto" / "cuartito"</div>
+                            <div class="command-desc">0.25 unidades</div>
+                        </div>
+                        <div class="command-item">
+                            <div class="command-phrase">"kilo y medio"</div>
+                            <div class="command-desc">1.5 unidades</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="command-tips">
+                    <h4>💡 Consejos</h4>
+                    <ul>
+                        <li>Habla claro y natural</li>
+                        <li>Puedes decir varios productos juntos con "y"</li>
+                        <li>El sistema está siempre escuchando</li>
+                        <li>Usa fracciones para productos por peso</li>
+                        <li>Puedes corregir precios al instante</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- OVERLAY DE ORIENTACIÓN -->
+    <div id="orientation-overlay" class="orientation-overlay" style="display:none;">
+        <!-- Se llena dinámicamente -->
+    </div>
+
+    <!-- CONTAINER DE ALERTAS -->
+    <div id="alert-container" class="alert-container"></div>
+
+    <!-- Botón flotante de comandos -->
+    <!--
+    <button class="commands-fab" onclick="openCommandsModal()" title="Ver comandos de voz">
+        📋
+    </button>
+    -->
+
+    <!-- JavaScript -->
+    <script src="/static/js/app.js"></script>
+    <script src="/static/js/voice_system.js"></script>
+    <script src="/static/js/tts_client.js"></script>
+    <script src="/static/js/orientation.js"></script>
+    <script src="/static/js/alerts.js"></script>
+    
+    <script>
+    // Función helper para botones
+    function handleVoiceCommand(command) {
+        processCommand(command);
+    }
+    
+    // Exponer cart globalmente para alerts.js
+    window.cart = cart || [];
+    </script>
+
+    <script>
+    // Funciones para modal de comandos
+    function openCommandsModal() {
+        console.log('[Modal] Abriendo modal de comandos');
+        const modal = document.getElementById('voice-commands-modal');
+        if (modal) {
+            modal.style.display = 'flex';
+            setTimeout(() => modal.classList.add('show'), 10);
+        } else {
+            console.error('[Modal] No se encontró el elemento voice-commands-modal');
+        }
+    }
+
+    function closeCommandsModal() {
+        console.log('[Modal] Cerrando modal');
+        const modal = document.getElementById('voice-commands-modal');
+        if (modal) {
+            modal.classList.remove('show');
+            setTimeout(() => modal.style.display = 'none', 300);
+        }
+    }
+
+    // Click fuera del modal para cerrar
+    document.addEventListener('click', function(e) {
+        const modal = document.getElementById('voice-commands-modal');
+        if (modal && e.target === modal) {
+            closeCommandsModal();
+        }
+    });
+
+    // Exponer globalmente
+    window.openCommandsModal = openCommandsModal;
+    window.closeCommandsModal = closeCommandsModal;
+    </script>
+</body>
+</html>
