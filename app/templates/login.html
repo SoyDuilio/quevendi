@@ -215,67 +215,225 @@
     </div>
 
     <script>
-        const form = document.getElementById('login-form');
-        const errorDiv = document.getElementById('error-message');
-        const loginBtn = document.getElementById('login-btn');
-        const btnText = document.getElementById('btn-text');
-        const btnLoading = document.getElementById('btn-loading');
+        // ========================================
+// LOGIN SCRIPT ADAPTADO - QueVendi
+// ========================================
 
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
+// Detectar automáticamente el entorno
+const API_URL = window.location.origin;
+console.log('🌍 Entorno detectado:', API_URL);
+
+const form = document.getElementById('login-form');
+const errorDiv = document.getElementById('error-message');
+const loginBtn = document.getElementById('login-btn');
+const btnText = document.getElementById('btn-text');
+const btnLoading = document.getElementById('btn-loading');
+
+form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    // Limpiar error anterior
+    errorDiv.classList.remove('show');
+    errorDiv.textContent = '';
+    
+    // Mostrar loading
+    loginBtn.disabled = true;
+    btnText.style.display = 'none';
+    btnLoading.style.display = 'inline-block';
+    
+    // Obtener datos del formulario
+    const dni = document.getElementById('dni').value.trim();
+    const pin = document.getElementById('pin').value.trim();
+    
+    // Validaciones
+    if (!dni || dni.length !== 8) {
+        showError('DNI debe tener 8 dígitos');
+        resetButton();
+        return;
+    }
+    
+    if (!pin || pin.length !== 4) {
+        showError('PIN debe tener 4 dígitos');
+        resetButton();
+        return;
+    }
+    
+    const loginUrl = `${API_URL}/api/auth/login`;
+    console.log('🔐 Intentando login...');
+    console.log('📡 URL:', loginUrl);
+    console.log('📦 Datos:', { dni, pin: '****' });
+    
+    try {
+        // Verificar que el backend esté vivo
+        console.log('🏥 Verificando backend...');
+        const healthCheck = await fetch(`${API_URL}/health`, {
+            method: 'GET',
+            headers: { 'Accept': 'application/json' }
+        }).catch(() => null);
+        
+        if (!healthCheck || !healthCheck.ok) {
+            throw new Error('El servidor no responde. Intenta más tarde.');
+        }
+        
+        console.log('✅ Backend disponible');
+        
+        // Intentar login
+        const response = await fetch(loginUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ dni, pin })
+        });
+        
+        console.log('📡 Response status:', response.status);
+        
+        // Leer respuesta
+        const data = await response.json();
+        console.log('📦 Respuesta:', data);
+        
+        if (response.ok) {
+            // ✅ LOGIN EXITOSO
+            console.log('✅ Login exitoso');
             
-            // Limpiar error anterior
-            errorDiv.classList.remove('show');
-            errorDiv.textContent = '';
+            // Guardar token y datos del usuario
+            localStorage.setItem('access_token', data.access_token);
+            localStorage.setItem('user_id', data.user_id);
+            localStorage.setItem('user_name', data.user_name);
+            localStorage.setItem('role', data.role);
             
-            // Mostrar loading
-            loginBtn.disabled = true;
-            btnText.style.display = 'none';
-            btnLoading.style.display = 'inline-block';
+            // Mostrar mensaje de éxito
+            showSuccess(`¡Bienvenido ${data.user_name}!`);
             
-            // Obtener datos del formulario
-            const formData = new FormData(form);
+            // Redirigir después de 1 segundo
+            setTimeout(() => {
+                window.location.href = '/static/voice/voice_simple.html';
+            }, 1000);
             
-            try {
-                const response = await fetch('/auth/login', {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                if (response.ok || response.redirected) {
-                    // Login exitoso - redirigir
-                    window.location.href = '/home';
-                } else {
-                    // Error de autenticación
-                    const data = await response.json();
-                    errorDiv.textContent = data.detail || 'DNI o PIN incorrectos';
-                    errorDiv.classList.add('show');
-                    
-                    // Reset botón
-                    loginBtn.disabled = false;
-                    btnText.style.display = 'inline-block';
-                    btnLoading.style.display = 'none';
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                errorDiv.textContent = 'Error de conexión. Intenta nuevamente.';
-                errorDiv.classList.add('show');
-                
-                // Reset botón
-                loginBtn.disabled = false;
-                btnText.style.display = 'inline-block';
-                btnLoading.style.display = 'none';
+        } else {
+            // ❌ ERROR DE AUTENTICACIÓN
+            console.error('❌ Error de autenticación:', data);
+            const errorMsg = data.detail || 'DNI o PIN incorrectos';
+            showError(errorMsg);
+            resetButton();
+        }
+        
+    } catch (error) {
+        // 💥 ERROR DE CONEXIÓN O SERVIDOR
+        console.error('💥 Error en login:', error);
+        
+        let errorMessage = 'Error de conexión. Intenta nuevamente.';
+        
+        if (error.message.includes('Failed to fetch')) {
+            errorMessage = 'No se puede conectar al servidor. Verifica tu conexión a internet.';
+        } else if (error.message.includes('servidor no responde')) {
+            errorMessage = error.message;
+        } else if (error.message) {
+            errorMessage = error.message;
+        }
+        
+        showError(errorMessage);
+        resetButton();
+    }
+});
+
+// ========================================
+// FUNCIONES AUXILIARES
+// ========================================
+
+function resetButton() {
+    loginBtn.disabled = false;
+    btnText.style.display = 'inline-block';
+    btnLoading.style.display = 'none';
+}
+
+function showError(message) {
+    errorDiv.textContent = message;
+    errorDiv.classList.add('show');
+}
+
+function showSuccess(message) {
+    // Crear notificación de éxito temporal
+    const successDiv = document.createElement('div');
+    successDiv.className = 'success-message';
+    successDiv.textContent = '✅ ' + message;
+    successDiv.style.cssText = `
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+        padding: 16px 32px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 16px;
+        z-index: 9999;
+        box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4);
+        animation: slideDown 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    `;
+    
+    document.body.appendChild(successDiv);
+    
+    // Auto-remover
+    setTimeout(() => {
+        successDiv.style.animation = 'slideUp 0.3s ease';
+        setTimeout(() => successDiv.remove(), 300);
+    }, 2000);
+}
+
+// ========================================
+// VALIDACIONES EN TIEMPO REAL
+// ========================================
+
+document.getElementById('dni').addEventListener('input', (e) => {
+    e.target.value = e.target.value.replace(/\D/g, '').slice(0, 8);
+    
+    // Limpiar error al escribir
+    if (errorDiv.classList.contains('show')) {
+        errorDiv.classList.remove('show');
+    }
+});
+
+document.getElementById('pin').addEventListener('input', (e) => {
+    e.target.value = e.target.value.replace(/\D/g, '').slice(0, 4);
+    
+    // Limpiar error al escribir
+    if (errorDiv.classList.contains('show')) {
+        errorDiv.classList.remove('show');
+    }
+});
+
+// Agregar animaciones CSS si no existen
+if (!document.getElementById('login-animations')) {
+    const style = document.createElement('style');
+    style.id = 'login-animations';
+    style.textContent = `
+        @keyframes slideDown {
+            from {
+                transform: translateX(-50%) translateY(-100px);
+                opacity: 0;
             }
-        });
+            to {
+                transform: translateX(-50%) translateY(0);
+                opacity: 1;
+            }
+        }
         
-        // Validación en tiempo real
-        document.getElementById('dni').addEventListener('input', (e) => {
-            e.target.value = e.target.value.replace(/\D/g, '').slice(0, 8);
-        });
-        
-        document.getElementById('pin').addEventListener('input', (e) => {
-            e.target.value = e.target.value.replace(/\D/g, '').slice(0, 4);
-        });
+        @keyframes slideUp {
+            from {
+                transform: translateX(-50%) translateY(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(-50%) translateY(-100px);
+                opacity: 0;
+            }
+        }
+    `;
+    document.head.appendChild(style);
+}
     </script>
 </body>
 </html>
