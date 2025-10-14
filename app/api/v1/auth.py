@@ -10,7 +10,7 @@ from app.core.database import get_db
 from app.schemas.user import Token, UserResponse
 from app.services.auth_service import AuthService
 
-router = APIRouter(prefix="/auth", tags=["auth"])
+router = APIRouter(tags=["auth"])
 templates = Jinja2Templates(directory="app/templates")
 
 
@@ -22,9 +22,8 @@ async def login_page(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
 
 
-@router.post("/login")
+@router.post("/auth/login")  # ⬅️ Ruta completa: /api/auth/login
 async def login(
-    request: Request,
     response: Response,
     dni: str = Form(...),
     pin: str = Form(...),
@@ -39,7 +38,7 @@ async def login(
         db: Sesión de base de datos
     
     Returns:
-        Redirección a /home o error
+        JSON con token y datos del usuario
     """
     # Validar formato
     if len(dni) != 8 or not dni.isdigit():
@@ -67,27 +66,24 @@ async def login(
     # Crear token
     access_token = auth_service.create_access_token_for_user(user)
     
-    # Guardar token en cookie
-    response = RedirectResponse(url="/home", status_code=status.HTTP_303_SEE_OTHER)
-    response.set_cookie(
-        key="access_token",
-        value=f"Bearer {access_token}",
-        httponly=True,
-        max_age=60 * 60 * 24 * 7,  # 7 días
-        samesite="lax"
-    )
-    
-    return response
+    # Devolver JSON (el frontend maneja la cookie)
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user": {
+            "id": user.id,
+            "username": user.username,
+            "store_id": user.store_id
+        }
+    }
 
 
-@router.post("/logout")
-async def logout(response: Response):
+@router.post("/auth/logout")  # ⬅️ Ruta completa: /api/auth/logout
+async def logout():
     """
-    Cerrar sesión eliminando cookie
+    Cerrar sesión (el frontend elimina la cookie)
     """
-    response = RedirectResponse(url="/auth/login", status_code=status.HTTP_303_SEE_OTHER)
-    response.delete_cookie("access_token")
-    return response
+    return {"message": "Logout exitoso"}
 
 
 @router.get("/logout")
