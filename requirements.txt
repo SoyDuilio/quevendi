@@ -1,36 +1,32 @@
-# ========================================
-# REQUIREMENTS.TXT - QueVendi
-# Compatible con Python 3.13
-# ========================================
+# Core
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+python-multipart==0.0.6
 
-# FastAPI y servidor
-fastapi==0.115.0
-uvicorn[standard]==0.32.1
-python-multipart==0.0.20
+# Database
+sqlalchemy==2.0.23
+psycopg2-binary==2.9.9
+alembic==1.12.1
 
-# Autenticación y seguridad
+# Auth
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
+bcrypt==4.0.1
 
-# Validación y configuración
-pydantic==2.10.6
-pydantic-settings==2.7.1
+# Validation
+pydantic==2.5.0
+pydantic-settings==2.1.0
 
-# Base de datos PostgreSQL
-psycopg[binary]==3.2.10
+# Templates & Static
+jinja2==3.1.2
+aiofiles==23.2.1
 
-# ORM y migraciones
-sqlalchemy==2.0.36
-alembic==1.14.0
+# Utils
+python-dotenv==1.1.1
+pytz==2025.2
 
-# Templates
-jinja2==3.1.4
-
-# Variables de entorno
-python-dotenv==1.0.1
-
-# Timezone handling
-pytz==2024.2
-
-# Google Cloud Text-to-Speech
-google-cloud-texttospeech==2.21.0
+# TTS
+google-cloud-texttospeech==2.31.0
+gtts==2.5.4
+pydub==0.25.1
+pillow==11.3.0
