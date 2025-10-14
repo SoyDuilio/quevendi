@@ -12,7 +12,7 @@ python-multipart==0.0.20
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
 
-# Validación y configuración (ACTUALIZADO para Python 3.13)
+# Validación y configuración
 pydantic==2.10.6
 pydantic-settings==2.7.1
 
@@ -28,3 +28,6 @@ jinja2==3.1.4
 
 # Variables de entorno
 python-dotenv==1.0.1
+
+# Timezone handling
+pytz==2024.2
