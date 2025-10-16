@@ -14,7 +14,7 @@ class TTSClient {
         const speed = options.speed || 1.0;
         
         try {
-            const response = await fetch('/voice/speak', {
+            const response = await fetch('/api/voice/speak', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ text, voice, speed })

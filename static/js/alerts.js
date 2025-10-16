@@ -41,7 +41,7 @@ async function checkAllAlerts() {
     console.log('[Alerts] 🔍 Verificando alertas...');
     
     try {
-        const response = await fetch('/sales/stats/today');
+        const response = await fetch('/api/sales/stats/today');
         const stats = await response.json();
         
         // 1. Pedido sin terminar

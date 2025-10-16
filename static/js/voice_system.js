@@ -4,9 +4,12 @@
  */
 
 // Estado global
+// Variables globales
 let recognition;
 let isListening = false;
 let cart = [];
+let idleTimer;
+let lastActivityTime = Date.now();
 let paymentMethod = 'efectivo'; // efectivo, yape, plin
 let voiceSettings = {
     voice: 'es-PE-Standard-A',
@@ -15,26 +18,46 @@ let voiceSettings = {
 };
 
 // Configuración
-const API_BASE = '';
+const API_BASE = '/api';
 const IDLE_TIMEOUT = 180000; // 3 minutos
-let idleTimer = null;
+//let idleTimer = null;
 
-/**
- * INICIALIZACIÓN
- */
-document.addEventListener('DOMContentLoaded', function() {
+// Configuración de rutas API (SIN duplicar /sales)
+const API_ROUTES = {
+    parseCommand: '/api/sales/voice/parse',
+    createSale: '/api/sales/',           // ✅ Ruta correcta
+    voiceSettings: '/api/sales/voice/settings',
+    todaySales: '/api/sales/today',
+    todayTotal: '/api/sales/today/total'
+};;
+
+console.log('[VoiceSystem] Rutas configuradas:', API_ROUTES);
+
+
+// ========================================
+// INICIALIZACIÓN COMPLETA
+// ========================================
+
+document.addEventListener('DOMContentLoaded', async function() {
     console.log('[VoiceSystem] Inicializando...');
     
+    // 1. Inicializar audio con filtros
+    const audioOk = await initAudioWithFilters();
+    
+    if (!audioOk) {
+        console.warn('[VoiceSystem] ⚠️ Audio no configurado, pero continuando...');
+    }
+    
+    // 2. Inicializar reconocimiento de voz
     initSpeechRecognition();
+    
+    // 3. Inicializar otros componentes
     initPaymentButtons();
-    initVoiceSettings();
-    loadVoiceSettings();
+    await loadVoiceSettings();
     startIdleMonitor();
     
-    // Auto-iniciar micrófono
-    setTimeout(() => {
-        startListening();
-    }, 1000);
+    // 4. Iniciar escucha automática
+    startListening();
     
     console.log('[VoiceSystem] ✅ Sistema listo');
 
@@ -51,74 +74,143 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+
+
 /**
  * RECONOCIMIENTO DE VOZ
  */
 function initSpeechRecognition() {
+    console.log('[Voice] Inicializando reconocimiento...');
+    
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-        showError('Navegador no soporta reconocimiento de voz');
-        return false;
+        console.error('[Voice] ❌ Reconocimiento de voz no disponible');
+        showError('Tu navegador no soporta reconocimiento de voz. Usa Chrome o Edge.');
+        return;
     }
     
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    recognition = new SpeechRecognition();
+    // Crear instancia
+    recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
     
-    recognition.lang = 'es-PE';
-    recognition.continuous = true; // ← CLAVE: Escucha continua
-    recognition.interimResults = false;
-    recognition.maxAlternatives = 1;
+    // ✅ CONFIGURACIÓN OPTIMIZADA PARA BODEGAS
+    recognition.lang = 'es-PE';              // Español de Perú
+    recognition.continuous = true;           // Escucha continua
+    recognition.interimResults = false;      // Solo resultados finales
+    recognition.maxAlternatives = 3;         // ✅ NUEVO: Hasta 3 alternativas
     
-    recognition.onstart = () => {
-        console.log('[Voice] 🎤 Escuchando...');
+    console.log('[Voice] Configuración:', {
+        lang: recognition.lang,
+        continuous: recognition.continuous,
+        interimResults: recognition.interimResults,
+        maxAlternatives: recognition.maxAlternatives
+    });
+    
+    // Event handlers
+    recognition.onstart = function() {
         isListening = true;
         updateMicStatus(true);
-        resetIdleTimer();
+        console.log('[Voice] 🎤 Escuchando...');
     };
     
-    recognition.onresult = (event) => {
-        const resultIndex = event.resultIndex;
-        const transcript = event.results[resultIndex][0].transcript.trim();
-        console.log('[Voice] 📝 Transcripción:', transcript);
+    recognition.onresult = function(event) {
+        resetIdleTimer();
         
-        showTranscript(transcript);
-        processCommand(transcript);
-        resetIdleTimer();
+        // ✅ NUEVO: Procesar múltiples alternativas
+        const results = event.results[event.results.length - 1];
+        const alternatives = [];
+        
+        for (let i = 0; i < results.length; i++) {
+            alternatives.push({
+                text: results[i].transcript,
+                confidence: results[i].confidence
+            });
+        }
+        
+        // Usar la alternativa con mayor confianza
+        const best = alternatives[0];
+        const text = best.text.trim();
+        
+        console.log('[Voice] 📝 Transcripción:', text);
+        console.log('[Voice] 🎯 Confianza:', (best.confidence * 100).toFixed(1) + '%');
+        
+        if (alternatives.length > 1) {
+            console.log('[Voice] 🔄 Alternativas:', alternatives.slice(1).map(a => 
+                `"${a.text}" (${(a.confidence * 100).toFixed(1)}%)`
+            ));
+        }
+        
+        showTranscript(text);
+        processCommand(text);
     };
     
-    recognition.onerror = (event) => {
+    recognition.onerror = function(event) {
         console.error('[Voice] ❌ Error:', event.error);
         
         if (event.error === 'no-speech') {
             console.log('[Voice] Sin voz detectada, continuando...');
+        } else if (event.error === 'audio-capture') {
+            showError('No se puede acceder al micrófono. Verifica permisos.');
         } else if (event.error === 'not-allowed') {
-            showError('Permiso de micrófono denegado');
-            isListening = false;
-            updateMicStatus(false);
+            showError('Permiso de micrófono denegado. Activa el micrófono en la configuración.');
         } else {
-            console.warn('[Voice] Error:', event.error);
+            showError(`Error de reconocimiento: ${event.error}`);
         }
     };
     
-    recognition.onend = () => {
+    recognition.onend = function() {
         console.log('[Voice] Reconocimiento terminado');
         
-        // Auto-reiniciar si debería estar escuchando
         if (isListening) {
             console.log('[Voice] 🔄 Reiniciando reconocimiento...');
             setTimeout(() => {
                 try {
                     recognition.start();
                 } catch (e) {
-                    console.warn('[Voice] Error al reiniciar:', e);
+                    console.error('[Voice] Error al reiniciar:', e);
                 }
-            }, 300);
-        } else {
-            updateMicStatus(false);
+            }, 100);
         }
     };
-    
-    return true;
 }
+
+// ========================================
+// INICIALIZAR CON FILTROS DE AUDIO
+// ========================================
+
+async function initAudioWithFilters() {
+    console.log('[Audio] Inicializando con filtros de ruido...');
+    
+    try {
+        // ✅ Solicitar micrófono con filtros optimizados
+        const stream = await navigator.mediaDevices.getUserMedia({
+            audio: {
+                echoCancellation: true,      // Cancelar eco
+                noiseSuppression: true,      // Suprimir ruido de fondo
+                autoGainControl: true,       // Control automático de ganancia
+                sampleRate: 48000            // Calidad de audio alta
+            }
+        });
+        
+        console.log('[Audio] ✅ Micrófono configurado con filtros');
+        console.log('[Audio] Configuración:', stream.getAudioTracks()[0].getSettings());
+        
+        // No necesitamos hacer nada más con el stream
+        // El navegador ya aplicará los filtros al reconocimiento
+        
+        return true;
+        
+    } catch (error) {
+        console.error('[Audio] ❌ Error configurando micrófono:', error);
+        
+        if (error.name === 'NotAllowedError') {
+            showError('Permiso de micrófono denegado. Permite el acceso para usar comandos de voz.');
+        } else if (error.name === 'NotFoundError') {
+            showError('No se encontró micrófono. Conecta un micrófono para usar comandos de voz.');
+        }
+        
+        return false;
+    }
+}
+
 
 function startListening() {
     if (!recognition) return;
@@ -147,14 +239,20 @@ function stopListening() {
     }
 }
 
-/**
- * PROCESAMIENTO DE COMANDOS
- */
+// ========================================
+// FUNCIONES CORREGIDAS CON fetchWithAuth()
+// Reemplaza estas 3 funciones en voice_system.js
+// ========================================
+
+// ========================================
+// PROCESAMIENTO DE COMANDOS (con ruta correcta)
+// ========================================
+
 async function processCommand(text) {
     console.log('[Voice] 🔄 Procesando:', text);
     
     try {
-        const response = await fetch(`${API_BASE}/sales/voice/parse`, {
+        const response = await fetchWithAuth(API_ROUTES.parseCommand, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ text: text })
@@ -204,10 +302,166 @@ async function handleCommand(data) {
             await handleProductChange(data);
             break;
         
+        // ✅ NUEVO: Manejar 'remove'
+        case 'remove':
+            await handleRemove(data);
+            break;
+
+        // ✅ NUEVO: Manejar ambigüedad
+        case 'ambiguous':
+            await handleAmbiguous(data);
+            break;
+        
         default:
             console.warn('[Voice] Tipo de comando desconocido:', type);
     }
 }
+
+async function handleAmbiguous(data) {
+    console.log('[Voice] Productos ambiguos:', data.ambiguous_products);
+    
+    const ambiguous = data.ambiguous_products[0];  // Por ahora solo el primero
+    const query = ambiguous.query;
+    const options = ambiguous.options;
+    
+    // Crear mensaje de voz con opciones
+    const optionsText = options.map((opt, i) => 
+        `${i + 1}: ${opt.name}`
+    ).join(', ');
+    
+    await speak(`Encontré varios ${query}. ${optionsText}. ¿Cuál quieres?`);
+    
+    // Mostrar opciones en pantalla
+    showAmbiguousOptions(query, options);
+    
+    // Esperar respuesta del usuario
+    // El usuario puede decir el número o el nombre completo
+}
+
+function showAmbiguousOptions(query, options) {
+    // Crear modal con opciones
+    const modal = document.createElement('div');
+    modal.className = 'modal show';
+    modal.id = 'ambiguous-modal';
+    modal.style.display = 'flex';
+    
+    const html = `
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h2>¿Cuál "${query}"?</h2>
+                <button class="modal-close" onclick="closeAmbiguousModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                ${options.map((opt, i) => `
+                    <div class="ambiguous-option" onclick="selectAmbiguousOption(${i}, ${opt.id}, '${opt.name}', ${opt.price})">
+                        <div class="option-number">${i + 1}</div>
+                        <div class="option-info">
+                            <div class="option-name">${opt.name}</div>
+                            <div class="option-price">S/. ${opt.price.toFixed(2)}</div>
+                        </div>
+                    </div>
+                `).join('')}
+                <div style="margin-top: 16px; text-align: center; color: rgba(255,255,255,0.6); font-size: 12px;">
+                    Di el número o toca una opción
+                </div>
+            </div>
+        </div>
+    `;
+    
+    modal.innerHTML = html;
+    document.body.appendChild(modal);
+}
+
+
+window.closeAmbiguousModal = function() {
+    const modal = document.getElementById('ambiguous-modal');
+    if (modal) {
+        modal.remove();
+    }
+};
+
+window.selectAmbiguousOption = async function(index, productId, productName, price) {
+    console.log('[Voice] Opción seleccionada:', productName);
+    
+    // Cerrar modal
+    closeAmbiguousModal();
+    
+    // Agregar al carrito
+    const product = {
+        id: productId,
+        name: productName,
+        price: price
+    };
+    
+    cart.push({
+        product: product,
+        quantity: 1,
+        subtotal: price
+    });
+    
+    updateCartDisplay();
+    
+    const total = cart.reduce((sum, i) => sum + i.subtotal, 0);
+    await speak(`Un ${productName}. Van ${formatPrice(total)}`);
+    playSound('success');
+};
+
+
+// Agregar estilos CSS para las opciones ambiguas
+const ambiguousStyles = `
+<style id="ambiguous-styles">
+.ambiguous-option {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    margin-bottom: 8px;
+    background: rgba(15, 23, 42, 0.5);
+    border: 2px solid rgba(139, 92, 246, 0.3);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.ambiguous-option:hover {
+    background: rgba(139, 92, 246, 0.2);
+    border-color: rgba(139, 92, 246, 0.6);
+    transform: translateX(4px);
+}
+
+.option-number {
+    font-size: 24px;
+    font-weight: 700;
+    color: #8b5cf6;
+    margin-right: 16px;
+    min-width: 32px;
+    text-align: center;
+}
+
+.option-info {
+    flex: 1;
+}
+
+.option-name {
+    font-size: 14px;
+    color: white;
+    font-weight: 500;
+    margin-bottom: 4px;
+}
+
+.option-price {
+    font-size: 16px;
+    color: #10b981;
+    font-weight: 600;
+}
+</style>
+`;
+
+// Insertar estilos si no existen
+if (!document.getElementById('ambiguous-styles')) {
+    document.head.insertAdjacentHTML('beforeend', ambiguousStyles);
+}
+
+
 
 async function handleCancel() {
     if (cart.length === 0) {
@@ -311,11 +565,66 @@ async function handleProductChange(data) {
     await speak(`Cambiado ${oldProduct.name} por ${newProduct.name}`);
 }
 
+
+async function handleRemove(data) {
+    console.log('[Voice] Eliminando producto:', data.product.name);
+    
+    // Buscar producto en el carrito
+    const index = cart.findIndex(item => item.product.id === data.product.id);
+    
+    if (index === -1) {
+        await speak(`No encontré ${data.product.name} en el carrito`);
+        playSound('error');
+        return;
+    }
+    
+    // Eliminar del carrito
+    const removed = cart.splice(index, 1)[0];
+    
+    // Actualizar UI
+    updateCartDisplay();
+    
+    // Respuesta de voz
+    await speak(`Eliminado ${removed.product.name}`);
+    playSound('success');
+}
+
+
 /**
- * CONFIRMAR VENTA
+ * BÚSQUEDA DE PRODUCTOS (SI EXISTE EN TU CÓDIGO - AGREGAR SI LA TIENES)
+ * Si tienes alguna función que busque productos, también debe usar fetchWithAuth
  */
+async function searchProduct(query) {
+    try {
+        // ✅ USAR fetchWithAuth
+        const response = await fetchWithAuth(`${API_BASE}/products/search?q=${encodeURIComponent(query)}`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        
+        if (!response.ok) {
+            throw new Error('Error al buscar producto');
+        }
+        
+        return await response.json();
+    } catch (error) {
+        console.error('[Voice] Error buscando producto:', error);
+        throw error;
+    }
+}
+
+// ========================================
+// CONFIRMAR VENTA (con ruta hardcoded para evitar duplicación)
+// ========================================
+
 async function confirmSale() {
     console.log('[Voice] 💾 Confirmando venta...');
+    
+    if (cart.length === 0) {
+        await speak('El carrito está vacío');
+        playSound('error');
+        return;
+    }
     
     const saleData = {
         items: cart.map(item => ({
@@ -331,7 +640,8 @@ async function confirmSale() {
     };
     
     try {
-        const response = await fetch(`${API_BASE}/sales/`, {
+        // ✅ Ruta hardcoded para evitar duplicación
+        const response = await fetchWithAuth('/api/sales/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(saleData)
@@ -352,8 +662,11 @@ async function confirmSale() {
         updateCartDisplay();
         
         // Actualizar UI
-        htmx.ajax('GET', '/sales/today/total', {target: '#daily-summary', swap: 'innerHTML'});
-        htmx.ajax('GET', '/sales/today', {target: '#sales-list', swap: 'innerHTML'});
+        htmx.ajax('GET', '/api/sales/today/total/html', {target: '#daily-summary', swap: 'innerHTML'});
+        htmx.ajax('GET', '/api/sales/today/html', {target: '#sales-list', swap: 'innerHTML'});
+        
+        // Evento personalizado para actualizar otras partes
+        document.body.dispatchEvent(new CustomEvent('salesUpdated'));
         
         // Respuesta de voz
         await speak(`Venta confirmada por ${formatPrice(total)}. Siguiente cliente`);
@@ -369,41 +682,52 @@ async function confirmSale() {
 /**
  * TEXT-TO-SPEECH (VOZ DEL SISTEMA)
  */
+/**
+ * TEXT-TO-SPEECH (SOLO NAVEGADOR)
+ */
 async function speak(text) {
-    if (!voiceSettings.enabled) {
-        console.log('[TTS] Voz deshabilitada');
+    console.log('[TTS] 🔊 Diciendo:', text);
+    
+    // Verificar si el navegador soporta síntesis de voz
+    if (!('speechSynthesis' in window)) {
+        console.error('[TTS] El navegador no soporta síntesis de voz');
         return;
     }
     
-    console.log('[TTS] 🔊 Diciendo:', text);
+    // Cancelar cualquier speech en curso
+    window.speechSynthesis.cancel();
     
-    try {
-        // Intentar Google TTS primero
-        const response = await fetch(`${API_BASE}/voice/speak`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                text: text,
-                voice: voiceSettings.voice,
-                speed: voiceSettings.speed
-            })
-        });
-        
-        const data = await response.json();
-        
-        if (data.method === 'google_tts' && data.audio) {
-            // Reproducir audio de Google TTS
-            playAudioBase64(data.audio);
-        } else {
-            // Fallback a Web Speech API
-            speakWithWebAPI(text);
-        }
-        
-    } catch (error) {
-        console.error('[TTS] Error:', error);
-        // Fallback a Web Speech API
-        speakWithWebAPI(text);
+    // Crear utterance
+    const utterance = new SpeechSynthesisUtterance(text);
+    
+    // Configurar voz en español
+    const voices = window.speechSynthesis.getVoices();
+    const spanishVoice = voices.find(voice => voice.lang.startsWith('es'));
+    if (spanishVoice) {
+        utterance.voice = spanishVoice;
     }
+    utterance.lang = 'es-PE';  // Español de Perú
+    
+    // Configuración de voz
+    utterance.rate = 1.0;      // Velocidad normal
+    utterance.pitch = 1.0;     // Tono normal
+    utterance.volume = 1.0;    // Volumen máximo
+    
+    // Eventos
+    utterance.onstart = () => {
+        console.log('[TTS] ✅ Reproduciendo...');
+    };
+    
+    utterance.onend = () => {
+        console.log('[TTS] ✅ Finalizado');
+    };
+    
+    utterance.onerror = (error) => {
+        console.error('[TTS] ❌ Error:', error);
+    };
+    
+    // Reproducir
+    window.speechSynthesis.speak(utterance);
 }
 
 function speakWithWebAPI(text) {
@@ -572,18 +896,23 @@ function openVoiceSettings() {
 
 async function loadVoiceSettings() {
     try {
-        const response = await fetch(`${API_BASE}/voice/settings`);
-        const data = await response.json();
+        const response = await fetchWithAuth(API_ROUTES.voiceSettings, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
+        });
         
-        voiceSettings = {
-            voice: data.voice || 'es-PE-Standard-A',
-            speed: data.speed || 1.0,
-            enabled: data.enabled !== false
-        };
+        if (!response.ok) {
+            console.warn('[Settings] No hay configuración guardada, usando defaults');
+            return null;
+        }
         
-        console.log('[Settings] Configuración cargada:', voiceSettings);
+        const settings = await response.json();
+        console.log('[Settings] Configuración cargada:', settings);
+        return settings;
+        
     } catch (error) {
-        console.warn('[Settings] Error cargando configuración:', error);
+        console.warn('[Settings] Error al cargar:', error);
+        return null;
     }
 }
 

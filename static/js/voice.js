@@ -101,7 +101,7 @@ async function processVoiceCommand(text) {
     console.log('[Voice] Procesando comando:', text);
 
     try {
-        const response = await fetch('/sales/voice/parse', {
+        const response = await fetch('/api/sales/voice/parse', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -325,7 +325,7 @@ async function confirmCart() {
     };
 
     try {
-        const response = await fetch('/sales/', {
+        const response = await fetch('/api/sales/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
