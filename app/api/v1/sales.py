@@ -14,6 +14,8 @@ from typing import List
 from datetime import datetime
 from pydantic import BaseModel
 
+from fastapi.responses import HTMLResponse
+
 router = APIRouter(prefix="/sales", tags=["sales"])
 
 class VoiceCommandRequest(BaseModel):
@@ -28,7 +30,7 @@ async def parse_voice_command(
 ):
     """
     Parsear comando de voz y procesar acción
-    Soporta: ventas, agregar, cambiar, cancelar, confirmar
+    Soporta: ventas, agregar, cambiar, cancelar, confirmar, quitar
     """
     parsed = VoiceService.parse_command(command.text)
     
@@ -45,25 +47,148 @@ async def parse_voice_command(
             "message": "Comando recibido"
         }
     
-    # Cambio de precio
+    # ========================================
+    # COMANDO: REMOVE (quitar producto)
+    # ========================================
+    if parsed['type'] == 'remove':
+        product_service = ProductService(db)
+        products = product_service.get_products_by_store(current_user.store_id)
+        
+        # Limpiar opciones ambiguas previas
+        VoiceService._last_ambiguous_options = []
+        
+        product = VoiceService.find_product_fuzzy(parsed['product_query'], products)
+        
+        # Verificar ambigüedad
+        if product is None and VoiceService._last_ambiguous_options:
+            return {
+                "type": "ambiguous_remove",
+                "product_query": parsed['product_query'],
+                "options": [
+                    {
+                        "id": p.id,
+                        "name": p.name,
+                        "price": p.sale_price
+                    }
+                    for p in VoiceService._last_ambiguous_options
+                ],
+                "message": f"¿Cuál {parsed['product_query']} quieres eliminar?"
+            }
+        
+        if not product:
+            raise HTTPException(
+                status_code=404,
+                detail=f"No se encontró: {parsed['product_query']}"
+            )
+        
+        return {
+            "type": "remove",
+            "product": {
+                "id": product.id,
+                "name": product.name
+            },
+            "message": f"Eliminar {product.name} del carrito"
+        }
+    
+    # ========================================
+    # COMANDO: CHANGE_PRICE (cambiar precio)
+    # ========================================
     if parsed['type'] == 'change_price':
+        product_service = ProductService(db)
+        products = product_service.get_products_by_store(current_user.store_id)
+        
+        # Limpiar opciones ambiguas previas
+        VoiceService._last_ambiguous_options = []
+        
+        # Buscar el producto para verificar que existe
+        product = VoiceService.find_product_fuzzy(parsed['product_query'], products)
+        
+        # Verificar ambigüedad
+        if product is None and VoiceService._last_ambiguous_options:
+            return {
+                "type": "ambiguous_price",
+                "product_query": parsed['product_query'],
+                "new_price": parsed['new_price'],
+                "options": [
+                    {
+                        "id": p.id,
+                        "name": p.name,
+                        "price": p.sale_price
+                    }
+                    for p in VoiceService._last_ambiguous_options
+                ],
+                "message": f"¿A cuál {parsed['product_query']} cambiar el precio?"
+            }
+        
+        if not product:
+            raise HTTPException(
+                status_code=404,
+                detail=f"No se encontró: {parsed['product_query']}"
+            )
+        
         return {
             "type": "change_price",
-            "product_query": parsed['product_query'],
+            "product": {
+                "id": product.id,
+                "name": product.name,
+                "current_price": product.sale_price
+            },
             "new_price": parsed['new_price']
         }
     
-    # Cambio de producto
+    # ========================================
+    # COMANDO: CHANGE_PRODUCT (cambiar X por Y)
+    # ========================================
     if parsed['type'] == 'change_product':
         product_service = ProductService(db)
         products = product_service.get_products_by_store(current_user.store_id)
         
-        # Buscar ambos productos
+        # Buscar producto viejo
+        VoiceService._last_ambiguous_options = []
         old_product = VoiceService.find_product_fuzzy(parsed['old_product'], products)
-        new_product = VoiceService.find_product_fuzzy(parsed['new_product'], products)
+        
+        if old_product is None and VoiceService._last_ambiguous_options:
+            return {
+                "type": "ambiguous_change_old",
+                "old_product_query": parsed['old_product'],
+                "new_product_query": parsed['new_product'],
+                "options": [
+                    {
+                        "id": p.id,
+                        "name": p.name,
+                        "price": p.sale_price
+                    }
+                    for p in VoiceService._last_ambiguous_options
+                ],
+                "message": f"¿Cuál {parsed['old_product']} quieres cambiar?"
+            }
         
         if not old_product:
             raise HTTPException(404, detail=f"No se encontró: {parsed['old_product']}")
+        
+        # Buscar producto nuevo
+        VoiceService._last_ambiguous_options = []
+        new_product = VoiceService.find_product_fuzzy(parsed['new_product'], products)
+        
+        if new_product is None and VoiceService._last_ambiguous_options:
+            return {
+                "type": "ambiguous_change_new",
+                "old_product": {
+                    "id": old_product.id,
+                    "name": old_product.name
+                },
+                "new_product_query": parsed['new_product'],
+                "options": [
+                    {
+                        "id": p.id,
+                        "name": p.name,
+                        "price": p.sale_price
+                    }
+                    for p in VoiceService._last_ambiguous_options
+                ],
+                "message": f"¿Por cuál {parsed['new_product']} cambiar?"
+            }
+        
         if not new_product:
             raise HTTPException(404, detail=f"No se encontró: {parsed['new_product']}")
         
@@ -80,20 +205,44 @@ async def parse_voice_command(
             }
         }
     
-    # Venta o agregar productos
+    # ========================================
+    # COMANDO: SALE / ADD (venta o agregar)
+    # ========================================
     product_service = ProductService(db)
     products = product_service.get_products_by_store(current_user.store_id)
     
     cart_items = []
     not_found = []
+    ambiguous_items = []  # ✅ NUEVO: Lista de items ambiguos
     
     for item in parsed['items']:
+        # Limpiar opciones ambiguas previas antes de cada búsqueda
+        VoiceService._last_ambiguous_options = []
+        
         product = VoiceService.find_product_fuzzy(item['product_query'], products)
+        
+        # ✅ NUEVO: Verificar si hay ambigüedad
+        if product is None and VoiceService._last_ambiguous_options:
+            ambiguous_items.append({
+                'query': item['product_query'],
+                'quantity': item['quantity'],
+                'options': [
+                    {
+                        'id': p.id,
+                        'name': p.name,
+                        'price': p.sale_price,
+                        'stock': p.stock
+                    }
+                    for p in VoiceService._last_ambiguous_options
+                ]
+            })
+            continue
         
         if not product:
             not_found.append(item['product_query'])
             continue
         
+        # Verificar stock
         if product.stock < item['quantity']:
             raise HTTPException(
                 status_code=400,
@@ -116,12 +265,23 @@ async def parse_voice_command(
             "subtotal": subtotal
         })
     
+    # ✅ NUEVO: Si hay items ambiguos, devolver para que el usuario elija
+    if ambiguous_items:
+        return {
+            "type": "ambiguous",
+            "ambiguous_items": ambiguous_items,
+            "found_items": cart_items,  # Items que sí se encontraron
+            "message": "Hay varios productos que coinciden. ¿Cuál quieres?"
+        }
+    
+    # Si no se encontró nada
     if not cart_items:
         raise HTTPException(
             status_code=404,
             detail=f"No se encontraron: {', '.join(not_found)}"
         )
     
+    # Respuesta exitosa
     response = {
         "type": parsed['type'],
         "items": cart_items,
@@ -197,3 +357,89 @@ async def get_today_stats(
         "low_stock": low_stock,
         "last_sale": sales[0].created_at if sales else None
     }
+
+"""
+Endpoints de ventas para QueVendí
+AGREGAR estos nuevos endpoints HTML al archivo sales.py existente
+"""
+
+@router.get("/today/html", response_class=HTMLResponse)
+async def get_today_sales_html(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Ventas del día en formato HTML para HTMX
+    """
+    sale_service = SaleService(db)
+    sales = sale_service.get_sales_by_date(current_user.store_id)
+    
+    # ✅ SI NO HAY VENTAS: Devolver empty state
+    if not sales or len(sales) == 0:
+        return HTMLResponse(content="""
+            <div class="empty-state">
+                <div class="empty-icon">📭</div>
+                <div class="empty-title">No hay ventas hoy</div>
+                <div class="empty-subtitle">Las ventas aparecerán aquí automáticamente</div>
+            </div>
+        """)
+    
+    # ✅ SI HAY VENTAS: Generar HTML de cada venta
+    html_items = []
+    for sale in sales:
+        # Obtener items de la venta
+        items_text = ", ".join([
+            f"{item.quantity}x {item.product.name}" 
+            for item in sale.items
+        ])
+        
+        # Emoji según método de pago
+        payment_emoji = {
+            'efectivo': '💵',
+            'yape': '💳',
+            'plin': '📱'
+        }.get(sale.payment_method, '💰')
+        
+        # Formatear hora
+        time_str = sale.created_at.strftime('%H:%M')
+        
+        # Generar HTML de la venta
+        html_items.append(f"""
+            <div class="sale-card">
+                <div class="sale-header">
+                    <span class="sale-time">{time_str}</span>
+                    <span class="sale-payment">{payment_emoji}</span>
+                    <span class="sale-total">S/. {sale.total:.2f}</span>
+                </div>
+                <div class="sale-items">{items_text}</div>
+            </div>
+        """)
+    
+    return HTMLResponse(content="\n".join(html_items))
+
+
+@router.get("/today/total/html", response_class=HTMLResponse)
+async def get_today_total_html(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Resumen del día en formato HTML para HTMX
+    """
+    sale_service = SaleService(db)
+    sales = sale_service.get_sales_by_date(current_user.store_id)
+    
+    count = len(sales)
+    total = sum(sale.total for sale in sales) if sales else 0.0
+    
+    return HTMLResponse(content=f"""
+        <div class="summary-item">
+            <div class="summary-label">Ventas</div>
+            <div class="summary-value">{count}</div>
+        </div>
+        <div class="summary-divider"></div>
+        <div class="summary-item">
+            <div class="summary-label">Total</div>
+            <div class="summary-value">S/. {total:.2f}</div>
+        </div>
+    """)

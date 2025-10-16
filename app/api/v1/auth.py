@@ -72,7 +72,7 @@ async def login(
         "token_type": "bearer",
         "user": {
             "id": user.id,
-            "username": user.username,
+            "username": user.full_name,
             "store_id": user.store_id
         }
     }
