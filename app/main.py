@@ -7,7 +7,7 @@ from fastapi.templating import Jinja2Templates
 from pathlib import Path
 from contextlib import asynccontextmanager
 from app.core.config import settings
-from app.api.v1 import auth, sales, products, voice
+from app.api.v1 import auth, sales, products, voice, reports, stores, users
 import os
 
 # ========================================
@@ -134,6 +134,22 @@ app.include_router(auth.router, prefix="/api")
 app.include_router(products.router, prefix="/api")
 app.include_router(sales.router, prefix="/api")
 app.include_router(voice.router, prefix="/api")
+app.include_router(reports.router, prefix="/api")
+app.include_router(stores.router, prefix="/api")
+app.include_router(users.router, prefix="/api")
+
+# ========================================
+# RUTAS DE REPORTES
+# ========================================
+@app.get("/reports", response_class=HTMLResponse)
+async def reports_page(request: Request):
+    """Página de reportes"""
+    return templates.TemplateResponse("reports.html", {"request": request})
+
+@app.get("/products/manage", response_class=HTMLResponse)
+async def products_manage_page(request: Request):
+    """Página de gestión de productos"""
+    return templates.TemplateResponse("products.html", {"request": request})
 
 # ========================================
 # RUTAS DE TEMPLATES (HTML)
@@ -150,13 +166,26 @@ async def login_page(request: Request):
 
 @app.get("/home", response_class=HTMLResponse)
 async def home_page(request: Request):
-    """Página principal"""
+    """
+    Página principal - la autenticación se maneja en el frontend
+    """
     return templates.TemplateResponse("home.html", {"request": request})
 
 @app.get("/products", response_class=HTMLResponse)
 async def products_page(request: Request):
     """Página de productos"""
     return templates.TemplateResponse("products.html", {"request": request})
+
+
+@app.get("/register-store", response_class=HTMLResponse)  # ✅ AGREGAR ESTA
+async def register_store_page(request: Request):
+    """Página de registro de tiendas"""
+    return templates.TemplateResponse("register-store.html", {"request": request})
+
+@app.get("/users/add", response_class=HTMLResponse)
+async def add_user_page(request: Request):
+    """Página para agregar usuarios"""
+    return templates.TemplateResponse("add-user.html", {"request": request})
 
 # ========================================
 # HEALTH CHECK
