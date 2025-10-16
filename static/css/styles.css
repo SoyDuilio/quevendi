@@ -1680,3 +1680,25 @@ body {
         left: 10px;
     }
 }
+
+
+/* ========================================
+   ESTILOS PARA ERRORES
+   ======================================== */
+.error-message {
+    display: none;
+    margin-top: 15px;
+    padding: 12px;
+    background-color: #fee;
+    border: 1px solid #fcc;
+    border-radius: 4px;
+    color: #c33;
+    font-size: 14px;
+    text-align: center;
+}
+
+.login-container button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
