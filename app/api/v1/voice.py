@@ -10,7 +10,8 @@ from app.models.user import User
 from pydantic import BaseModel
 from typing import Optional
 
-router = APIRouter(prefix="/voice", tags=["voice"])
+#router = APIRouter(prefix="/voice", tags=["voice"])
+router = APIRouter()
 
 class TTSRequest(BaseModel):
     """Request para text-to-speech"""

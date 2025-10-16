@@ -10,7 +10,8 @@ from app.models.store import Store
 from app.core.security import hash_password
 from app.api.dependencies import get_current_user
 
-router = APIRouter(prefix="/users", tags=["users"])
+#router = APIRouter(prefix="/users", tags=["users"])
+router = APIRouter()
 
 class UserCreate(BaseModel):
     store_id: int

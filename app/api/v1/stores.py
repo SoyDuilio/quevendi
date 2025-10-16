@@ -9,7 +9,8 @@ from app.models.store import Store
 from app.models.user import User
 from app.core.security import hash_password
 
-router = APIRouter(prefix="/stores", tags=["stores"])
+#router = APIRouter(prefix="/stores", tags=["stores"])
+router = APIRouter()
 
 class AdminUserCreate(BaseModel):
     full_name: str

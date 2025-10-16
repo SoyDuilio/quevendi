@@ -13,7 +13,8 @@ from app.models.product import Product
 from app.api.dependencies import get_current_user
 from app.models.user import User
 
-router = APIRouter(prefix="/reports", tags=["reports"])
+#router = APIRouter(prefix="/reports", tags=["reports"])
+router = APIRouter()
 
 @router.get("/stats/today", response_class=HTMLResponse)
 async def get_today_stats_html(

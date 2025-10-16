@@ -10,7 +10,8 @@ from app.models.user import User
 from app.services.product_service import ProductService
 from pydantic import BaseModel
 
-router = APIRouter(prefix="/products", tags=["products"])
+#router = APIRouter(prefix="/products", tags=["products"])
+router = APIRouter()
 
 @router.get("", response_class=HTMLResponse)
 async def get_products_html(

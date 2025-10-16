@@ -16,7 +16,8 @@ from pydantic import BaseModel
 
 from fastapi.responses import HTMLResponse
 
-router = APIRouter(prefix="/sales", tags=["sales"])
+#router = APIRouter(prefix="/sales", tags=["sales"])
+router = APIRouter()
 
 class VoiceCommandRequest(BaseModel):
     """Comando de voz"""

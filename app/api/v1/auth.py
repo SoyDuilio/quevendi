@@ -10,7 +10,7 @@ from app.core.database import get_db
 from app.schemas.user import Token, UserResponse
 from app.services.auth_service import AuthService
 
-router = APIRouter(tags=["auth"])
+router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
 
 
@@ -22,7 +22,7 @@ async def login_page(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
 
 
-@router.post("/auth/login")  # ⬅️ Ruta completa: /api/auth/login
+@router.post("/login")  # ✅ CORREGIDO - Sin /auth/
 async def login(
     response: Response,
     dni: str = Form(...),
@@ -78,7 +78,7 @@ async def login(
     }
 
 
-@router.post("/auth/logout")  # ⬅️ Ruta completa: /api/auth/logout
+@router.post("/logout")  # ✅ CORREGIDO - Sin /auth/
 async def logout():
     """
     Cerrar sesión (el frontend elimina la cookie)
