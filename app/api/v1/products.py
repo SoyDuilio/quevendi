@@ -63,7 +63,7 @@ class ProductCreate(BaseModel):
     category: str | None = None
     unit: str = "unidad"
     sale_price: float
-    purchase_price: float = 0.0
+    cost_price: float = 0.0
     stock: int
     min_stock_alert: int = 0
     aliases: str | None = None
@@ -94,7 +94,7 @@ async def create_product(
         category=product_data.category,
         unit=product_data.unit,
         sale_price=product_data.sale_price,
-        purchase_price=product_data.purchase_price,
+        cost_price=product_data.cost_price,
         stock=product_data.stock,
         min_stock_alert=product_data.min_stock_alert,
         aliases=product_data.aliases,

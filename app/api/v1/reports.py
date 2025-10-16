@@ -23,7 +23,9 @@ async def get_today_stats_html(
     """Estadísticas del día en formato HTML"""
     
     # ✅ USAR TIMEZONE DE PERÚ
-    peru_tz = ZoneInfo("America/Lima")
+    #peru_tz = ZoneInfo("America/Lima")
+    from datetime import timezone, timedelta
+    peru_tz = timezone(timedelta(hours=-5))  # UTC-5 para Perú
     
     # Fecha actual en Perú
     now_peru = datetime.now(peru_tz)
