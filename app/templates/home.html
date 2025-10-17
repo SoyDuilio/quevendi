@@ -14,24 +14,34 @@
     
     <!-- AUTH CHECK (ejecutar antes de cargar el body) -->
     <script>
-        // Verificar autenticación antes de mostrar contenido
-        (function() {
-            const token = localStorage.getItem('access_token');
-            const user = localStorage.getItem('user');
-            const store = localStorage.getItem('store');
+        // Configurar HTMX para que use el token
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🔧 Configurando HTMX con token...');
             
-            if (!token || !user || !store) {
-                console.warn('[Auth] No hay sesión activa, redirigiendo a /auth/login');
-                window.location.href = '/auth/login';
-            } else {
-                console.log('[Auth] ✅ Sesión válida detectada');
-            }
-        })();
+            document.body.addEventListener('htmx:configRequest', function(event) {
+                const token = localStorage.getItem('access_token');
+                if (token) {
+                    event.detail.headers['Authorization'] = `Bearer ${token}`;
+                    console.log('[HTMX] ✅ Token agregado a:', event.detail.path);
+                } else {
+                    console.warn('[HTMX] ⚠️ No hay token para:', event.detail.path);
+                }
+            });
+            
+            // Manejar errores 401
+            document.body.addEventListener('htmx:responseError', function(event) {
+                if (event.detail.xhr.status === 401) {
+                    console.log('[Auth] ❌ 401 - Redirigiendo a login');
+                    localStorage.clear();
+                    window.location.href = '/auth/login';
+                }
+            });
+        });
     </script>
 
         <!-- HTMX -->
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-    
+
     <style>
         /* Fix para selector de métodos de pago */
 
