@@ -16,6 +16,22 @@ const ALERT_CONFIG = {
 let alertTimer = null;
 let lastSaleTime = Date.now();
 
+async function fetchWithAuth(url, options = {}) {
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+        console.warn('[Alerts] No hay token');
+        return null;
+    }
+    
+    const headers = {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        ...options.headers
+    };
+    
+    return await fetch(url, { ...options, headers });
+}
+
 /**
  * INICIALIZACIÓN
  */
@@ -41,7 +57,7 @@ async function checkAllAlerts() {
     console.log('[Alerts] 🔍 Verificando alertas...');
     
     try {
-        const response = await fetch('/api/sales/stats/today');
+        const response = await fetchWithAuth('/api/sales/stats/today');
         const stats = await response.json();
         
         // 1. Pedido sin terminar
