@@ -320,44 +320,17 @@ form.addEventListener('submit', async (e) => {
             console.log('✅ Usuario guardado:', user);
             
             // ==========================================
-            // OBTENER DATOS DE LA TIENDA
+            // CREAR DATOS BÁSICOS DE TIENDA
             // ==========================================
-            console.log('🏪 Obteniendo datos de la tienda...');
-            try {
-                const storeResponse = await fetch(`${API_URL}/api/stores/${user.store_id}`, {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${data.access_token}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                if (storeResponse.ok) {
-                    const storeData = await storeResponse.json();
-                    localStorage.setItem('store', JSON.stringify(storeData));
-                    console.log('✅ Tienda guardada:', storeData);
-                } else {
-                    // Si falla, crear objeto básico con los datos que tenemos
-                    console.warn('⚠️ No se pudo obtener datos de tienda, usando datos básicos');
-                    const basicStore = {
-                        id: user.store_id,
-                        commercial_name: 'Mi Tienda',
-                        ruc: '',
-                        address: ''
-                    };
-                    localStorage.setItem('store', JSON.stringify(basicStore));
-                }
-            } catch (storeError) {
-                console.error('❌ Error al obtener tienda:', storeError);
-                // Crear objeto básico
-                const basicStore = {
-                    id: user.store_id,
-                    commercial_name: 'Mi Tienda',
-                    ruc: '',
-                    address: ''
-                };
-                localStorage.setItem('store', JSON.stringify(basicStore));
-            }
+            console.log('🏪 Creando datos básicos de tienda...');
+            const basicStore = {
+                id: user.store_id,
+                commercial_name: 'Mi Tienda',
+                ruc: '',
+                address: ''
+            };
+            localStorage.setItem('store', JSON.stringify(basicStore));
+            console.log('✅ Tienda guardada:', basicStore);
             
             // ==========================================
             // MOSTRAR ÉXITO Y REDIRIGIR
