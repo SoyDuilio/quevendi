@@ -127,18 +127,20 @@ function initSpeechRecognition() {
     
     // Crear instancia
     recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-    
-    // ✅ CONFIGURACIÓN OPTIMIZADA PARA BODEGAS
-    recognition.lang = 'es-PE';              // Español de Perú
-    recognition.continuous = true;           // Escucha continua
-    recognition.interimResults = false;      // Solo resultados finales
-    recognition.maxAlternatives = 3;         // ✅ NUEVO: Hasta 3 alternativas
-    
+
+    // ✅ CONFIGURACIÓN OPTIMIZADA
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    recognition.lang = 'es-PE';
+    recognition.continuous = !isMobile;      // ⬅️ false en móvil, true en desktop
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 3;
+
     console.log('[Voice] Configuración:', {
         lang: recognition.lang,
         continuous: recognition.continuous,
         interimResults: recognition.interimResults,
-        maxAlternatives: recognition.maxAlternatives
+        maxAlternatives: recognition.maxAlternatives,
+        isMobile: isMobile  // ⬅️ Para debug
     });
     
     // Event handlers
