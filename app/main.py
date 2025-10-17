@@ -138,6 +138,15 @@ app.include_router(reports.router, prefix="/api/reports", tags=["reports"])
 app.include_router(stores.router, prefix="/api/stores", tags=["stores"])
 app.include_router(users.router, prefix="/api/users", tags=["users"])
 
+# ✅ AGREGAR ESTO:
+print("\n" + "="*60)
+print("🔧 DEBUG: Routers incluidos")
+print("="*60)
+for route in app.routes:
+    if hasattr(route, 'path') and '/api/' in route.path:
+        methods = getattr(route, 'methods', [])
+        print(f"  {', '.join(methods):10} {route.path}")
+print("="*60 + "\n")
 
 # ========================================
 # RUTAS DE REPORTES
@@ -195,3 +204,4 @@ async def add_user_page(request: Request):
 async def health():
     """Health check para Railway"""
     return {"status": "healthy"}
+
