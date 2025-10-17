@@ -41,37 +41,41 @@ console.log('[VoiceSystem] Rutas configuradas:', API_ROUTES);
 document.addEventListener('DOMContentLoaded', async function() {
     console.log('[VoiceSystem] Inicializando...');
     
-    // 1. Inicializar audio con filtros
-    const audioOk = await initAudioWithFilters();
+    // 1. Detectar si es móvil
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
     
-    if (!audioOk) {
-        console.warn('[VoiceSystem] ⚠️ Audio no configurado, pero continuando...');
+    // 2. Inicializar audio SOLO si no es móvil
+    if (!isMobile) {
+        const audioOk = await initAudioWithFilters();
+        if (!audioOk) {
+            console.warn('[VoiceSystem] ⚠️ Audio no configurado, pero continuando...');
+        }
+    } else {
+        console.log('[VoiceSystem] 📱 Móvil detectado - audio se activará al tocar');
     }
     
-    // 2. Inicializar reconocimiento de voz
+    // 3. Inicializar reconocimiento
     initSpeechRecognition();
     
-    // 3. Inicializar otros componentes
+    // 4. Inicializar otros componentes
     initPaymentButtons();
     await loadVoiceSettings();
     startIdleMonitor();
     
-    // 4. Iniciar escucha automática
-    startListening();
+    // 5. NO iniciar escucha automática en móvil
+    if (!isMobile) {
+        startListening();
+    } else {
+        console.log('[Voice] 📱 Toca el micrófono para activar');
+        updateMicStatus(false);
+        const micStatus = document.getElementById('mic-status');
+        if (micStatus) {
+            micStatus.textContent = '🎤 TOCA PARA ACTIVAR';
+            micStatus.style.cursor = 'pointer';
+        }
+    }
     
     console.log('[VoiceSystem] ✅ Sistema listo');
-
-    // Permitir click en el estado para reactivar
-    const micStatus = document.getElementById('mic-status');
-    if (micStatus) {
-        micStatus.addEventListener('click', function() {
-            if (!isListening) {
-                console.log('[Voice] Reactivando micrófono...');
-                startListening();
-            }
-        });
-        micStatus.style.cursor = 'pointer';
-    }
 });
 
 
@@ -145,22 +149,18 @@ function initSpeechRecognition() {
     recognition.onerror = function(event) {
         console.error('[Voice] ❌ Error:', event.error);
         
-        // ✅ Ignorar errores que no son críticos
-        const ignoredErrors = ['aborted', 'no-speech', 'network'];
+        // Ignorar errores comunes en móvil
+        const ignoredErrors = ['aborted', 'no-speech', 'network', 'not-allowed'];
+        const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
         
-        if (ignoredErrors.includes(event.error)) {
-            console.log('[Voice] Error ignorado:', event.error);
-            return;  // ⬅️ NO mostrar toast
+        if (ignoredErrors.includes(event.error) || isMobile) {
+            console.log('[Voice] Error ignorado (móvil):', event.error);
+            return;  // ⬅️ NO mostrar toast en móvil
         }
         
-        // ✅ Solo mostrar toast para errores importantes
+        // Solo mostrar errores críticos en desktop
         if (event.error === 'audio-capture') {
-            showError('No se puede acceder al micrófono. Verifica permisos.');
-        } else if (event.error === 'not-allowed') {
-            showError('Permiso de micrófono denegado. Activa el micrófono en la configuración.');
-        } else {
-            // Para otros errores, solo log (sin toast)
-            console.warn('[Voice] Error no manejado:', event.error);
+            showError('No se puede acceder al micrófono.');
         }
     };
     
