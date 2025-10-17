@@ -76,6 +76,39 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
     
     console.log('[VoiceSystem] ✅ Sistema listo');
+
+    // Hacer clickeable el estado del micrófono
+    const micStatus = document.getElementById('mic-status');
+    if (micStatus) {
+        micStatus.addEventListener('click', async function() {
+            console.log('[Voice] 🎤 Click en micrófono');
+            
+            if (!isListening) {
+                console.log('[Voice] Activando por toque del usuario...');
+                
+                // Solicitar permisos de audio en móvil
+                const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+                if (isMobile) {
+                    try {
+                        await initAudioWithFilters();
+                    } catch (e) {
+                        console.error('[Voice] Error al inicializar audio:', e);
+                    }
+                }
+                
+                startListening();
+                micStatus.textContent = '🎤 ESCUCHANDO...';
+            } else {
+                console.log('[Voice] Pausando...');
+                stopListening();
+                micStatus.textContent = '🎤 TOCA PARA ACTIVAR';
+            }
+        });
+        
+        console.log('[Voice] ✅ Listener de click agregado');
+    } else {
+        console.error('[Voice] ❌ Elemento mic-status no encontrado');
+    }
 });
 
 
