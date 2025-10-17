@@ -39,6 +39,11 @@
                 }
             });
             */
+
+            document.body.addEventListener('htmx:responseError', function(event) {
+            console.error('🔴 HTMX Error:', event.detail.xhr.status, event.detail.path);
+            // ⬅️ NO redirigir, solo logear
+});
             
             console.log('[HTMX] ✅ Configuración aplicada');
         });
@@ -642,3 +647,4 @@ document.addEventListener('DOMContentLoaded', function() {
 
 </body>
 </html>
+
