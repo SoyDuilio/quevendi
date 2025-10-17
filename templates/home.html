@@ -6,9 +6,6 @@
     <meta name="theme-color" content="#0F172A">
     <title>QueVendí PRO</title>
     
-    <!-- HTMX -->
-    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-    
     <!-- CSS -->
     <link rel="stylesheet" href="/static/css/styles.css">
     <link rel="stylesheet" href="/static/css/voice_simple.css">
@@ -16,21 +13,39 @@
     <link rel="stylesheet" href="/static/css/modal_commands.css">
     
     <!-- AUTH CHECK (ejecutar antes de cargar el body) -->
+    <!-- ✅ CONFIGURACIÓN HTMX - SOLO UNA VEZ -->
     <script>
-        // Verificar autenticación antes de mostrar contenido
-        (function() {
-            const token = localStorage.getItem('access_token');
-            const user = localStorage.getItem('user');
-            const store = localStorage.getItem('store');
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🔧 Configurando HTMX con token...');
             
-            if (!token || !user || !store) {
-                console.warn('[Auth] No hay sesión activa, redirigiendo a /auth/login');
-                window.location.href = '/auth/login';
-            } else {
-                console.log('[Auth] ✅ Sesión válida detectada');
-            }
-        })();
+            // Agregar token a todas las peticiones HTMX
+            document.body.addEventListener('htmx:configRequest', function(event) {
+                const token = localStorage.getItem('access_token');
+                if (token) {
+                    event.detail.headers['Authorization'] = `Bearer ${token}`;
+                    console.log('[HTMX] ✅ Token agregado a:', event.detail.path);
+                } else {
+                    console.warn('[HTMX] ⚠️ No hay token para:', event.detail.path);
+                }
+            });
+            
+            // ❌ TEMPORALMENTE DESHABILITADO - PARA DEBUG
+            /*
+            document.body.addEventListener('htmx:responseError', function(event) {
+                if (event.detail.xhr.status === 401) {
+                    console.log('[Auth] ❌ 401 - Redirigiendo a login');
+                    localStorage.clear();
+                    window.location.href = '/auth/login';
+                }
+            });
+            */
+            
+            console.log('[HTMX] ✅ Configuración aplicada');
+        });
     </script>
+
+        <!-- HTMX -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
 
     <style>
         /* Fix para selector de métodos de pago */
@@ -381,6 +396,10 @@
     
     <!-- 1. Cargar datos del usuario primero -->
     <script>
+        // DEBUG: Verificar token al cargar
+        console.log('🔐 Token en localStorage:', localStorage.getItem('access_token') ? '✅ Existe' : '❌ No existe');
+        console.log('👤 User:', localStorage.getItem('user'));
+
         // Función para cargar datos del usuario desde localStorage
         function loadUserData() {
             try {
@@ -554,27 +573,6 @@
     </script>
     
     <!-- 7. Configurar HTMX con headers de autorización -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Configurar HTMX para incluir token en todas las peticiones
-            document.body.addEventListener('htmx:configRequest', function(event) {
-                const token = localStorage.getItem('access_token');
-                if (token) {
-                    event.detail.headers['Authorization'] = `Bearer ${token}`;
-                }
-            });
-            
-            // Manejar errores 401 de HTMX
-            document.body.addEventListener('htmx:responseError', function(event) {
-                if (event.detail.xhr.status === 401) {
-                    console.warn('[HTMX] Token expirado (401), redirigiendo a login');
-                    handleLogout();
-                }
-            });
-            
-            console.log('[HTMX] ✅ Configuración de autenticación aplicada');
-        });
-    </script>
 
 
     <script>
