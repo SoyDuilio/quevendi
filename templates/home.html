@@ -39,11 +39,6 @@
                 }
             });
             */
-
-            document.body.addEventListener('htmx:responseError', function(event) {
-            console.error('🔴 HTMX Error:', event.detail.xhr.status, event.detail.path);
-            // ⬅️ NO redirigir, solo logear
-});
             
             console.log('[HTMX] ✅ Configuración aplicada');
         });
@@ -79,6 +74,14 @@
         .mic-status {
             flex: 1 !important;
             min-width: 120px !important;
+            cursor: pointer !important;
+            user-select: none !important;
+            -webkit-tap-highlight-color: rgba(16, 185, 129, 0.3) !important;
+        }
+
+        .mic-status:active {
+            transform: scale(0.95);
+            background: rgba(16, 185, 129, 0.3) !important;
         }
 
         .payment-btn {
@@ -647,4 +650,3 @@ document.addEventListener('DOMContentLoaded', function() {
 
 </body>
 </html>
-
