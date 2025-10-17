@@ -7,6 +7,15 @@ from app.core.config import settings
 # Contexto para hashing de PINs
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+def hash_password(password: str) -> str:
+    """Hashear password con bcrypt"""
+    return pwd_context.hash(password)
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """Verificar password"""
+    return pwd_context.verify(plain_password, hashed_password)
+
+
 def verify_pin(plain_pin: str, hashed_pin: str) -> bool:
     return pwd_context.verify(plain_pin, hashed_pin)
 
