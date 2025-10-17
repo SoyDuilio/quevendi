@@ -18,6 +18,7 @@ document.body.addEventListener('htmx:configRequest', function(event) {
 });
 
 // Manejar errores 401
+/*
 document.body.addEventListener('htmx:responseError', function(event) {
     console.error('[HTMX] Error en respuesta:', event.detail);
     
@@ -26,4 +27,6 @@ document.body.addEventListener('htmx:responseError', function(event) {
         localStorage.clear();
         window.location.href = '/auth/login';
     }
+
 });
+*/
