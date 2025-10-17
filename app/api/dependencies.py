@@ -15,49 +15,54 @@ async def get_current_user(
     db: Session = Depends(get_db)
 ) -> User:
     """
-    Obtener el usuario actual desde el token en la cookie
-    
-    Args:
-        request: Request de FastAPI
-        db: Sesión de base de datos
-    
-    Returns:
-        Usuario autenticado
-    
-    Raises:
-        HTTPException: Si no hay token o es inválido
+    Obtener el usuario actual desde el token
+    Soporta tanto cookies como header Authorization
     """
-    # Obtener token de la cookie
-    token = request.cookies.get("access_token")
+    token = None
     
+    # 1. Intentar obtener del header Authorization (para HTMX/fetch)
+    auth_header = request.headers.get("Authorization")
+    if auth_header and auth_header.startswith("Bearer "):
+        token = auth_header.replace("Bearer ", "")
+        print(f"[Auth] Token desde header: {token[:20]}...")
+    
+    # 2. Si no está en header, intentar cookie (fallback)
     if not token:
+        token = request.cookies.get("access_token")
+        if token:
+            print(f"[Auth] Token desde cookie: {token[:20]}...")
+            # Remover "Bearer " si existe
+            if token.startswith("Bearer "):
+                token = token.replace("Bearer ", "")
+    
+    # 3. Si no hay token en ningún lado
+    if not token:
+        print("[Auth] ❌ No se encontró token")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="No autenticado. Por favor inicia sesión.",
             headers={"WWW-Authenticate": "Bearer"},
         )
     
-    # Remover "Bearer " si existe
-    if token.startswith("Bearer "):
-        token = token.replace("Bearer ", "")
-    
-    # Verificar token
+    # 4. Verificar token
     auth_service = AuthService(db)
     user = auth_service.get_current_user(token)
     
     if not user:
+        print(f"[Auth] ❌ Token inválido")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token inválido o expirado. Por favor inicia sesión nuevamente.",
+            detail="Token inválido o expirado.",
             headers={"WWW-Authenticate": "Bearer"},
         )
     
     if not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Usuario inactivo. Contacta al administrador.",
+            detail="Usuario inactivo.",
         )
     
+    print(f"[Auth] ✅ Usuario autenticado: {user.full_name}")
     return user
 
 
