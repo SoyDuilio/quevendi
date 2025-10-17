@@ -375,7 +375,7 @@ async def get_today_sales_html(
     sale_service = SaleService(db)
     sales = sale_service.get_sales_by_date(current_user.store_id)
     
-    # ✅ SI NO HAY VENTAS: Devolver empty state
+    # ✅ SI NO HAY VENTAS
     if not sales or len(sales) == 0:
         return HTMLResponse(content="""
             <div class="empty-state">
@@ -385,35 +385,54 @@ async def get_today_sales_html(
             </div>
         """)
     
-    # ✅ SI HAY VENTAS: Generar HTML de cada venta
+    # ✅ SI HAY VENTAS
     html_items = []
     for sale in sales:
-        # Obtener items de la venta
         items_text = ", ".join([
             f"{item.quantity}x {item.product.name}" 
             for item in sale.items
         ])
         
-        # Emoji según método de pago
-        payment_emoji = {
-            'efectivo': '💵',
-            'yape': '💳',
-            'plin': '📱'
-        }.get(sale.payment_method, '💰')
+        payment_data = {
+            'efectivo': {'text': 'Efectivo', 'color': '#10b981', 'bg': 'rgba(16, 185, 129, 0.15)'},
+            'yape': {'text': 'Yape', 'color': '#8b5cf6', 'bg': 'rgba(139, 92, 246, 0.15)'},
+            'plin': {'text': 'Plin', 'color': '#3b82f6', 'bg': 'rgba(59, 130, 246, 0.15)'}
+        }.get(sale.payment_method.lower(), {'text': 'Otro', 'color': '#64748b', 'bg': 'rgba(100, 116, 139, 0.15)'})
         
-        # Formatear hora
         time_str = sale.created_at.strftime('%H:%M')
         
-        # Generar HTML de la venta
         html_items.append(f"""
             <div class="sale-card">
                 <div class="sale-header">
                     <span class="sale-time">{time_str}</span>
-                    <span class="sale-payment">{payment_emoji}</span>
+                    <span class="payment-badge-{sale.id}">{payment_data['text']}</span>
                     <span class="sale-total">S/. {sale.total:.2f}</span>
                 </div>
                 <div class="sale-items">{items_text}</div>
             </div>
+            <style>
+                .payment-badge-{sale.id} {{
+                    display: inline-flex !important;
+                    align-items: center !important;
+                    justify-content: center !important;
+                    background: {payment_data['bg']} !important;
+                    color: {payment_data['color']} !important;
+                    padding: 4px 10px !important;
+                    border-radius: 6px !important;
+                    font-size: 12px !important;
+                    font-weight: 600 !important;
+                    border: 1px solid {payment_data['color']}40 !important;
+                    text-transform: uppercase !important;
+                    letter-spacing: 0.5px !important;
+                    min-width: 60px !important;
+                }}
+                .payment-badge-{sale.id}::before,
+                .payment-badge-{sale.id}::after {{
+                    content: none !important;
+                    display: none !important;
+                    background-image: none !important;
+                }}
+            </style>
         """)
     
     return HTMLResponse(content="\n".join(html_items))
@@ -444,3 +463,25 @@ async def get_today_total_html(
             <div class="summary-value">S/. {total:.2f}</div>
         </div>
     """)
+
+
+@router.get("/voice/settings")
+async def get_voice_settings(
+    current_user: User = Depends(get_current_user)
+):
+    """Obtener configuración de voz del usuario"""
+    # Por ahora retornar configuración por defecto
+    return {
+        "voice": "es-PE-Standard-A",
+        "speed": 1.0,
+        "enabled": True
+    }
+
+@router.post("/voice/settings")
+async def save_voice_settings(
+    settings: dict,
+    current_user: User = Depends(get_current_user)
+):
+    """Guardar configuración de voz"""
+    # Por ahora solo retornar éxito
+    return {"message": "Configuración guardada", "settings": settings}
