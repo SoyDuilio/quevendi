@@ -6,9 +6,6 @@
     <meta name="theme-color" content="#0F172A">
     <title>QueVendí PRO</title>
     
-    <!-- HTMX -->
-    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-    
     <!-- CSS -->
     <link rel="stylesheet" href="/static/css/styles.css">
     <link rel="stylesheet" href="/static/css/voice_simple.css">
@@ -32,6 +29,9 @@
         })();
     </script>
 
+        <!-- HTMX -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    
     <style>
         /* Fix para selector de métodos de pago */
 
@@ -384,6 +384,7 @@
         // DEBUG: Verificar token al cargar
         console.log('🔐 Token en localStorage:', localStorage.getItem('access_token') ? '✅ Existe' : '❌ No existe');
         console.log('👤 User:', localStorage.getItem('user'));
+
         // Función para cargar datos del usuario desde localStorage
         function loadUserData() {
             try {
@@ -647,4 +648,3 @@ document.addEventListener('DOMContentLoaded', function() {
 
 </body>
 </html>
-
