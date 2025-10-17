@@ -8,6 +8,7 @@ from app.core.database import get_db
 from app.models.store import Store
 from app.models.user import User
 from app.core.security import hash_password
+from app.api.dependencies import get_current_user
 
 #router = APIRouter(prefix="/stores", tags=["stores"])
 router = APIRouter()
@@ -116,4 +117,25 @@ async def list_stores(
             "ruc": store.ruc
         }
         for store in stores
+
     ]
+
+
+@router.get("/{store_id}")
+async def get_store(
+    store_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Obtener información de una tienda"""
+    store = db.query(Store).filter(Store.id == store_id).first()
+    
+    if not store:
+        raise HTTPException(status_code=404, detail="Tienda no encontrada")
+    
+    return {
+        "id": store.id,
+        "commercial_name": store.commercial_name,
+        "ruc": store.ruc,
+        "address": store.address
+    }
