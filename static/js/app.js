@@ -1,45 +1,29 @@
 /**
  * QueVendí PRO - JavaScript Principal
- * Versión simplificada para trabajar con HTMX y HTML directo
  */
-
-// ========================================
-// CONFIGURACIÓN
-// ========================================
 
 console.log('✅ QueVendí PRO inicializado');
 
 // ========================================
-// FUNCIONES AUXILIARES (si las necesitas)
+// CONFIGURAR HTMX CON AUTENTICACIÓN
 // ========================================
-
-function showConfig() {
-    alert('Configuración próximamente...');
-}
-
-// ========================================
-// HTMX EVENTS (opcional - solo para debugging)
-// ========================================
-
-// Loggear eventos HTMX para debugging
-document.addEventListener('htmx:afterSwap', function(event) {
-    console.log('[HTMX] Contenido actualizado:', event.detail.target.id);
+document.body.addEventListener('htmx:configRequest', function(event) {
+    const token = localStorage.getItem('access_token');
+    if (token) {
+        event.detail.headers['Authorization'] = `Bearer ${token}`;
+        console.log('[HTMX] Token agregado a request:', event.detail.path);
+    } else {
+        console.warn('[HTMX] No hay token para:', event.detail.path);
+    }
 });
 
-document.addEventListener('htmx:responseError', function(event) {
+// Manejar errores 401
+document.body.addEventListener('htmx:responseError', function(event) {
     console.error('[HTMX] Error en respuesta:', event.detail);
+    
+    if (event.detail.xhr.status === 401) {
+        console.log('[Auth] 401 detectado - redirigiendo a login');
+        localStorage.clear();
+        window.location.href = '/auth/login';
+    }
 });
-
-// ========================================
-// NOTAS:
-// ========================================
-// Ya NO necesitas:
-// - renderDailySummary() → El HTML viene del backend
-// - renderSalesList() → El HTML viene del backend
-// - JSON.parse() → Ya no parseamos JSON, HTMX inserta HTML directo
-//
-// El flujo ahora es:
-// 1. HTMX hace GET /api/sales/today/html
-// 2. Backend devuelve HTML completo
-// 3. HTMX lo inserta directamente en el DOM
-// 4. ¡Listo! No necesitas JavaScript adicional
