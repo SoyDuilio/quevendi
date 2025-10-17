@@ -145,14 +145,22 @@ function initSpeechRecognition() {
     recognition.onerror = function(event) {
         console.error('[Voice] ❌ Error:', event.error);
         
-        if (event.error === 'no-speech') {
-            console.log('[Voice] Sin voz detectada, continuando...');
-        } else if (event.error === 'audio-capture') {
+        // ✅ Ignorar errores que no son críticos
+        const ignoredErrors = ['aborted', 'no-speech', 'network'];
+        
+        if (ignoredErrors.includes(event.error)) {
+            console.log('[Voice] Error ignorado:', event.error);
+            return;  // ⬅️ NO mostrar toast
+        }
+        
+        // ✅ Solo mostrar toast para errores importantes
+        if (event.error === 'audio-capture') {
             showError('No se puede acceder al micrófono. Verifica permisos.');
         } else if (event.error === 'not-allowed') {
             showError('Permiso de micrófono denegado. Activa el micrófono en la configuración.');
         } else {
-            showError(`Error de reconocimiento: ${event.error}`);
+            // Para otros errores, solo log (sin toast)
+            console.warn('[Voice] Error no manejado:', event.error);
         }
     };
     
@@ -902,8 +910,8 @@ async function loadVoiceSettings() {
         });
         
         if (!response.ok) {
-            console.warn('[Settings] No hay configuración guardada, usando defaults');
-            return null;
+            console.log('[Settings] Usando configuración por defecto');
+            return null;  // ⬅️ Retornar null sin warning
         }
         
         const settings = await response.json();
@@ -911,8 +919,8 @@ async function loadVoiceSettings() {
         return settings;
         
     } catch (error) {
-        console.warn('[Settings] Error al cargar:', error);
-        return null;
+        console.log('[Settings] Usando defaults');
+        return null;  // ⬅️ Retornar null silenciosamente
     }
 }
 
