@@ -381,6 +381,9 @@
     
     <!-- 1. Cargar datos del usuario primero -->
     <script>
+        // DEBUG: Verificar token al cargar
+        console.log('🔐 Token en localStorage:', localStorage.getItem('access_token') ? '✅ Existe' : '❌ No existe');
+        console.log('👤 User:', localStorage.getItem('user'));
         // Función para cargar datos del usuario desde localStorage
         function loadUserData() {
             try {
@@ -644,3 +647,4 @@ document.addEventListener('DOMContentLoaded', function() {
 
 </body>
 </html>
+
