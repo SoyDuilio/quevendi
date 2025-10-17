@@ -130,13 +130,14 @@ else:
 # ========================================
 # ROUTERS API - CON PREFIX /api
 # ========================================
-app.include_router(auth.router, prefix="/api")
-app.include_router(products.router, prefix="/api")
-app.include_router(sales.router, prefix="/api")
-app.include_router(voice.router, prefix="/api")
-app.include_router(reports.router, prefix="/api")
-app.include_router(stores.router, prefix="/api")
-app.include_router(users.router, prefix="/api")
+app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
+app.include_router(products.router, prefix="/api/products", tags=["products"])
+app.include_router(sales.router, prefix="/api/sales", tags=["sales"])
+app.include_router(voice.router, prefix="/api/voice", tags=["voice"])
+app.include_router(reports.router, prefix="/api/reports", tags=["reports"])
+app.include_router(stores.router, prefix="/api/stores", tags=["stores"])
+app.include_router(users.router, prefix="/api/users", tags=["users"])
+
 
 # ========================================
 # RUTAS DE REPORTES
