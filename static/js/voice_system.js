@@ -200,7 +200,10 @@ function initSpeechRecognition() {
     recognition.onend = function() {
         console.log('[Voice] Reconocimiento terminado');
         
-        if (isListening) {
+        const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+        
+        // ❌ NO reiniciar automáticamente en móvil
+        if (isListening && !isMobile) {
             console.log('[Voice] 🔄 Reiniciando reconocimiento...');
             setTimeout(() => {
                 try {
@@ -209,6 +212,15 @@ function initSpeechRecognition() {
                     console.error('[Voice] Error al reiniciar:', e);
                 }
             }, 100);
+        } else if (isMobile) {
+            // En móvil, dejar que el usuario reactive manualmente
+            console.log('[Voice] 📱 Finalizado. Toca para reactivar.');
+            isListening = false;
+            updateMicStatus(false);
+            const micStatus = document.getElementById('mic-status');
+            if (micStatus) {
+                micStatus.textContent = '🎤 TOCA PARA ACTIVAR';
+            }
         }
     };
 }
