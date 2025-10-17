@@ -2,6 +2,9 @@ from pydantic_settings import BaseSettings
 from typing import Optional
 
 class Settings(BaseSettings):
+    # Información de la aplicación
+    APP_NAME: str = "QueVendi"
+    
     # Database
     DATABASE_URL: str
     
@@ -27,5 +30,6 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         extra = "allow"  # AGREGAR ESTO si no existe
+
 
 settings = Settings()
