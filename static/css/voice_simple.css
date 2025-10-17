@@ -562,21 +562,23 @@
 
 
 .modal {
-    display: none; /* Cambiar de 'display: none' inicial */
+    display: none;  /* Oculto por defecto */
     position: fixed;
     top: 0;
     left: 0;
-    right: 0;
-    bottom: 0;
+    width: 100%;
+    height: 100%;
     background: rgba(0, 0, 0, 0.8);
-    backdrop-filter: blur(4px);
     z-index: 10000;
     align-items: center;
     justify-content: center;
     opacity: 0;
-    transition: opacity 0.3s;
+    pointer-events: none;  /* ⬅️ CRÍTICO: No bloquea cuando está oculto */
+    transition: opacity 0.3s ease;
 }
 
 .modal.show {
+    display: flex;
     opacity: 1;
+    pointer-events: auto;  /* ⬅️ Solo permite interacción cuando visible */
 }
