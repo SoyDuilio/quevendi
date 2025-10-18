@@ -184,46 +184,31 @@ function initSpeechRecognition() {
     recognition.onerror = function(event) {
         console.error('[Voice] ❌ Error:', event.error);
         
-        // Ignorar errores comunes en móvil
-        const ignoredErrors = ['aborted', 'no-speech', 'network', 'not-allowed'];
-        const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-        
-        if (ignoredErrors.includes(event.error) || isMobile) {
-            console.log('[Voice] Error ignorado (móvil):', event.error);
-            return;  // ⬅️ NO mostrar toast en móvil
+        isListening = false;
+        const micStatus = document.getElementById('mic-status');
+        if (micStatus) {
+            micStatus.textContent = '🎤 TOCA PARA ACTIVAR';
+            micStatus.classList.remove('listening');
         }
         
-        // Solo mostrar errores críticos en desktop
-        if (event.error === 'audio-capture') {
-            showError('No se puede acceder al micrófono.');
+        // Solo alertar errores importantes
+        if (event.error === 'not-allowed') {
+            alert('Permiso de micrófono denegado. Actívalo en la configuración.');
         }
     };
     
     recognition.onend = function() {
         console.log('[Voice] Reconocimiento terminado');
+        isListening = false;
         
-        const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-        
-        // ❌ NO reiniciar automáticamente en móvil
-        if (isListening && !isMobile) {
-            console.log('[Voice] 🔄 Reiniciando reconocimiento...');
-            setTimeout(() => {
-                try {
-                    recognition.start();
-                } catch (e) {
-                    console.error('[Voice] Error al reiniciar:', e);
-                }
-            }, 100);
-        } else if (isMobile) {
-            // En móvil, dejar que el usuario reactive manualmente
-            console.log('[Voice] 📱 Finalizado. Toca para reactivar.');
-            isListening = false;
-            updateMicStatus(false);
-            const micStatus = document.getElementById('mic-status');
-            if (micStatus) {
-                micStatus.textContent = '🎤 TOCA PARA ACTIVAR';
-            }
+        const micStatus = document.getElementById('mic-status');
+        if (micStatus) {
+            micStatus.textContent = '🎤 TOCA PARA ACTIVAR';
+            micStatus.classList.remove('listening');
         }
+        
+        // NO reiniciar automáticamente (como en Pedidos)
+        console.log('[Voice] 📱 Toca para el siguiente comando');
     };
 }
 
@@ -271,13 +256,25 @@ function startListening() {
     if (!recognition) return;
     
     try {
+        // Recrear instancia (como en Pedidos)
+        recognition.abort();  // Detener cualquier instancia previa
+        
+        console.log('[Voice] 🎤 Iniciando...');
         recognition.start();
-        console.log('[Voice] Iniciado');
+        isListening = true;
+        
+        const micStatus = document.getElementById('mic-status');
+        if (micStatus) {
+            micStatus.textContent = '🎤 ESCUCHANDO...';
+            micStatus.classList.add('listening');
+        }
+        
     } catch (error) {
         if (error.message.includes('already started')) {
             console.log('[Voice] Ya está escuchando');
         } else {
             console.error('[Voice] Error al iniciar:', error);
+            isListening = false;
         }
     }
 }
@@ -288,9 +285,15 @@ function stopListening() {
     isListening = false;
     try {
         recognition.stop();
-        console.log('[Voice] Detenido');
+        console.log('[Voice] 🛑 Detenido');
     } catch (error) {
         console.warn('[Voice] Error al detener:', error);
+    }
+    
+    const micStatus = document.getElementById('mic-status');
+    if (micStatus) {
+        micStatus.textContent = '🎤 TOCA PARA ACTIVAR';
+        micStatus.classList.remove('listening');
     }
 }
 
