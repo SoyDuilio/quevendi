@@ -5,12 +5,30 @@
 
 // Estado global
 // Variables globales
-let recognition;
-let isListening = false;
-let cart = [];
+//let recognition;
+//let isListening = false;
+//let cart = [];
+//let paymentMethod = 'efectivo'; // efectivo, yape, plin
+
+// ========================================
+// ESTADO GLOBAL - COMO EN PEDIDOS
+// ========================================
+const VoiceState = {
+    recognition: null,
+    isListening: false,
+    cart: [],
+    paymentMethod: 'efectivo',
+    voiceSettings: {
+        voice: 'es-PE-Standard-A',
+        speed: 1.0,
+        enabled: true
+    }
+};
+
+
+
 let idleTimer;
 let lastActivityTime = Date.now();
-let paymentMethod = 'efectivo'; // efectivo, yape, plin
 let voiceSettings = {
     voice: 'es-PE-Standard-A',
     speed: 1.0,
@@ -119,96 +137,51 @@ document.addEventListener('DOMContentLoaded', async function() {
 function initSpeechRecognition() {
     console.log('[Voice] Inicializando reconocimiento...');
     
-    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    
+    if (!SpeechRecognition) {
         console.error('[Voice] ❌ Reconocimiento de voz no disponible');
-        showError('Tu navegador no soporta reconocimiento de voz. Usa Chrome o Edge.');
         return;
     }
     
-    // Crear instancia
-    recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-
-    // ✅ CONFIGURACIÓN OPTIMIZADA
-    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-    recognition.lang = 'es-PE';
-    recognition.continuous = !isMobile;      // ⬅️ false en móvil, true en desktop
-    recognition.interimResults = false;
-    recognition.maxAlternatives = 3;
-
+    // Crear instancia como en Pedidos
+    VoiceState.recognition = new SpeechRecognition();
+    VoiceState.recognition.continuous = false;  // Como en Pedidos
+    VoiceState.recognition.interimResults = false;
+    VoiceState.recognition.lang = 'es-PE';
+    
     console.log('[Voice] Configuración:', {
-        lang: recognition.lang,
-        continuous: recognition.continuous,
-        interimResults: recognition.interimResults,
-        maxAlternatives: recognition.maxAlternatives,
-        isMobile: isMobile  // ⬅️ Para debug
+        continuous: VoiceState.recognition.continuous,
+        interimResults: VoiceState.recognition.interimResults,
+        lang: VoiceState.recognition.lang
     });
     
-    // Event handlers
-    recognition.onstart = function() {
-        isListening = true;
-        updateMicStatus(true);
-        console.log('[Voice] 🎤 Escuchando...');
+    // Event handlers - COPIADOS DE PEDIDOS
+    VoiceState.recognition.onresult = function(event) {
+        const texto = event.results[0][0].transcript.trim();
+        console.log('[Voice] 📝 Transcripción:', texto);
+        showTranscript(texto);
+        processCommand(texto);
     };
     
-    recognition.onresult = function(event) {
-        resetIdleTimer();
-        
-        // ✅ NUEVO: Procesar múltiples alternativas
-        const results = event.results[event.results.length - 1];
-        const alternatives = [];
-        
-        for (let i = 0; i < results.length; i++) {
-            alternatives.push({
-                text: results[i].transcript,
-                confidence: results[i].confidence
-            });
-        }
-        
-        // Usar la alternativa con mayor confianza
-        const best = alternatives[0];
-        const text = best.text.trim();
-        
-        console.log('[Voice] 📝 Transcripción:', text);
-        console.log('[Voice] 🎯 Confianza:', (best.confidence * 100).toFixed(1) + '%');
-        
-        if (alternatives.length > 1) {
-            console.log('[Voice] 🔄 Alternativas:', alternatives.slice(1).map(a => 
-                `"${a.text}" (${(a.confidence * 100).toFixed(1)}%)`
-            ));
-        }
-        
-        showTranscript(text);
-        processCommand(text);
-    };
-    
-    recognition.onerror = function(event) {
-        console.error('[Voice] ❌ Error:', event.error);
-        
-        isListening = false;
-        const micStatus = document.getElementById('mic-status');
-        if (micStatus) {
-            micStatus.textContent = '🎤 TOCA PARA ACTIVAR';
-            micStatus.classList.remove('listening');
-        }
-        
-        // Solo alertar errores importantes
-        if (event.error === 'not-allowed') {
-            alert('Permiso de micrófono denegado. Actívalo en la configuración.');
-        }
-    };
-    
-    recognition.onend = function() {
+    VoiceState.recognition.onend = function() {
         console.log('[Voice] Reconocimiento terminado');
-        isListening = false;
-        
+        VoiceState.isListening = false;
         const micStatus = document.getElementById('mic-status');
         if (micStatus) {
             micStatus.textContent = '🎤 TOCA PARA ACTIVAR';
             micStatus.classList.remove('listening');
         }
-        
-        // NO reiniciar automáticamente (como en Pedidos)
-        console.log('[Voice] 📱 Toca para el siguiente comando');
+    };
+    
+    VoiceState.recognition.onerror = function(event) {
+        console.error('[Voice] ❌ Error:', event.error);
+        VoiceState.isListening = false;
+        const micStatus = document.getElementById('mic-status');
+        if (micStatus) {
+            micStatus.textContent = '🎤 TOCA PARA ACTIVAR';
+            micStatus.classList.remove('listening');
+        }
     };
 }
 
@@ -253,28 +226,21 @@ async function initAudioWithFilters() {
 
 
 function startListening() {
-    if (!recognition) return;
+    if (!VoiceState.recognition) {
+        console.error('[Voice] Recognition no inicializado');
+        return;
+    }
     
-    try {
-        // Recrear instancia (como en Pedidos)
-        recognition.abort();  // Detener cualquier instancia previa
-        
-        console.log('[Voice] 🎤 Iniciando...');
-        recognition.start();
-        isListening = true;
-        
-        const micStatus = document.getElementById('mic-status');
-        if (micStatus) {
-            micStatus.textContent = '🎤 ESCUCHANDO...';
-            micStatus.classList.add('listening');
-        }
-        
-    } catch (error) {
-        if (error.message.includes('already started')) {
-            console.log('[Voice] Ya está escuchando');
-        } else {
-            console.error('[Voice] Error al iniciar:', error);
-            isListening = false;
+    const micButton = document.getElementById('mic-status');
+    
+    if (VoiceState.isListening) {
+        VoiceState.recognition.stop();
+    } else {
+        VoiceState.recognition.start();
+        VoiceState.isListening = true;
+        if (micButton) {
+            micButton.classList.add('listening');
+            micButton.textContent = '🎤 ESCUCHANDO...';
         }
     }
 }
