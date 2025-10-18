@@ -73,7 +73,8 @@ async def login(
         "user": {
             "id": user.id,
             "username": user.full_name,
-            "store_id": user.store_id
+            "store_id": user.store_id,
+            "dni": user.dni
         }
     }
 
