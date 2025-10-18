@@ -807,7 +807,7 @@ function updateCartDisplay() {
     const total = VoiceState.cart.reduce((sum, item) => sum + item.subtotal, 0);
     
     let itemsHTML = '';
-    VoiceState.cartforEach((item, index) => {
+    VoiceState.cart.forEach((item, index) => {
         itemsHTML += `
             <div class="cart-item">
                 <div class="item-info">
