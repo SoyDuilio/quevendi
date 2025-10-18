@@ -546,7 +546,7 @@ async function handlePriceChange(data) {
     const newPrice = data.new_price;
     
     // Buscar producto en el carrito
-    const item = VoiceState.cartfind(i => 
+    const item = VoiceState.cart.find(i => 
         i.product.name.toLowerCase().includes(productQuery) ||
         productQuery.includes(i.product.name.toLowerCase())
     );
@@ -571,7 +571,7 @@ async function handleProductChange(data) {
     const newProduct = data.new_product;
     
     // Buscar y reemplazar en carrito
-    const itemIndex = VoiceState.cartfindIndex(i => i.product.id === oldProduct.id);
+    const itemIndex = VoiceState.cart.findIndex(i => i.product.id === oldProduct.id);
     
     if (itemIndex === -1) {
         await speak(`No encontré ${oldProduct.name} en el carrito`);
@@ -594,7 +594,7 @@ async function handleRemove(data) {
     console.log('[Voice] Eliminando producto:', data.product.name);
     
     // Buscar producto en el carrito
-    const index = VoiceState.cartfindIndex(item => item.product.id === data.product.id);
+    const index = VoiceState.cart.findIndex(item => item.product.id === data.product.id);
     
     if (index === -1) {
         await speak(`No encontré ${data.product.name} en el carrito`);
@@ -603,7 +603,7 @@ async function handleRemove(data) {
     }
     
     // Eliminar del carrito
-    const removed = VoiceState.cartsplice(index, 1)[0];
+    const removed = VoiceState.cart.splice(index, 1)[0];
     
     // Actualizar UI
     updateCartDisplay();
@@ -651,7 +651,7 @@ async function confirmSale() {
     }
     
     const saleData = {
-        items: VoiceState.cartmap(item => ({
+        items: VoiceState.cart.map(item => ({
             product_id: item.product.id,
             quantity: item.quantity,
             unit_price: item.product.price,
