@@ -18,6 +18,8 @@ const VoiceState = {
     isListening: false,
     cart: [],
     paymentMethod: 'efectivo',
+    idleTimer: null,                    // ⬅️ AGREGAR
+    lastActivityTime: Date.now(),       // ⬅️ AGREGAR
     voiceSettings: {
         voice: 'es-PE-Standard-A',
         speed: 1.0,
@@ -953,9 +955,9 @@ function startIdleMonitor() {
 }
 
 function resetIdleTimer() {
-    if (idleTimer) clearTimeout(idleTimer);
+    if (VoiceState.idleTimer) clearTimeout(VoiceState.idleTimer);
     
-    idleTimer = setTimeout(() => {
+    VoiceState.idleTimer = setTimeout(() => {
         console.log('[Idle] ⏰ Tiempo de inactividad alcanzado');
         checkIdleAlerts();
     }, IDLE_TIMEOUT);
