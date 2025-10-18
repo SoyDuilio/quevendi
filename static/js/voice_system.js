@@ -56,7 +56,13 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     // 2. Inicializar audio SOLO si no es móvil
     if (!isMobile) {
-        const audioOk = await initAudioWithFilters();
+        // NO inicializar audio en móvil
+        const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+        if (!isMobile) {
+            const audioOk = await initAudioWithFilters();
+        } else {
+            console.log('[Voice] Móvil: audio se maneja automáticamente');
+        }
         if (!audioOk) {
             console.warn('[VoiceSystem] ⚠️ Audio no configurado, pero continuando...');
         }
@@ -100,7 +106,9 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
                 if (isMobile) {
                     try {
-                        await initAudioWithFilters();
+                        // NO inicializar audio manualmente en móvil
+                        // El recognition.start() maneja el micrófono automáticamente
+                        console.log('[Voice] Iniciando reconocimiento directo...');
                     } catch (e) {
                         console.error('[Voice] Error al inicializar audio:', e);
                     }
