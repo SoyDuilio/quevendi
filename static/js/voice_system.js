@@ -417,7 +417,7 @@ window.selectAmbiguousOption = async function(index, productId, productName, pri
         price: price
     };
     
-    VoiceState.cartpush({
+    VoiceState.cart.push({
         product: product,
         quantity: 1,
         subtotal: price
@@ -425,7 +425,7 @@ window.selectAmbiguousOption = async function(index, productId, productName, pri
     
     updateCartDisplay();
     
-    const total = VoiceState.cartreduce((sum, i) => sum + i.subtotal, 0);
+    const total = VoiceState.cart.reduce((sum, i) => sum + i.subtotal, 0);
     await speak(`Un ${productName}. Van ${formatPrice(total)}`);
     playSound('success');
 };
@@ -488,7 +488,7 @@ if (!document.getElementById('ambiguous-styles')) {
 
 
 async function handleCancel() {
-    if (VoiceState.cartlength === 0) {
+    if (VoiceState.cart.length === 0) {
         await speak('No hay productos en el carrito');
         return;
     }
@@ -500,7 +500,7 @@ async function handleCancel() {
 }
 
 async function handleConfirm() {
-    if (VoiceState.cartlength === 0) {
+    if (VoiceState.cart.length === 0) {
         await speak('No hay productos para confirmar');
         return;
     }
@@ -511,12 +511,12 @@ async function handleConfirm() {
 async function handleAdd(data) {
     // Agregar al carrito existente
     for (const item of data.items) {
-        VoiceState.cartpush(item);
+        VoiceState.cart.push(item);
     }
     
     updateCartDisplay();
     
-    const total = VoiceState.cartreduce((sum, item) => sum + item.subtotal, 0);
+    const total = VoiceState.cart.reduce((sum, item) => sum + item.subtotal, 0);
     const itemNames = data.items.map(i => `${formatQuantity(i.quantity)} ${i.product.name}`).join(' y ');
     
     await speak(`Agregado ${itemNames}. Van ${formatPrice(total)}`);
@@ -562,7 +562,7 @@ async function handlePriceChange(data) {
     
     updateCartDisplay();
     
-    const total = VoiceState.cartreduce((sum, i) => sum + i.subtotal, 0);
+    const total = VoiceState.cart.reduce((sum, i) => sum + i.subtotal, 0);
     await speak(`Precio de ${item.product.name} cambiado de ${formatPrice(oldPrice)} a ${formatPrice(newPrice)}. Nuevo total: ${formatPrice(total)}`);
 }
 
@@ -644,7 +644,7 @@ async function searchProduct(query) {
 async function confirmSale() {
     console.log('[Voice] 💾 Confirmando venta...');
     
-    if (VoiceState.cartlength === 0) {
+    if (VoiceState.cart.length === 0) {
         await speak('El carrito está vacío');
         playSound('error');
         return;
@@ -679,7 +679,7 @@ async function confirmSale() {
         const result = await response.json();
         console.log('[Voice] ✅ Venta guardada:', result);
         
-        const total = VoiceState.cartreduce((sum, i) => sum + i.subtotal, 0);
+        const total = VoiceState.cart.reduce((sum, i) => sum + i.subtotal, 0);
         
         // Limpiar carrito
         VoiceState.cart = [];
@@ -793,7 +793,7 @@ function updateCartDisplay() {
     const cartContainer = document.getElementById('cart-display');
     if (!cartContainer) return;
     
-    if (VoiceState.cartlength === 0) {
+    if (VoiceState.cart.length === 0) {
         cartContainer.innerHTML = `
             <div class="cart-empty">
                 <div class="empty-icon">🛒</div>
@@ -804,7 +804,7 @@ function updateCartDisplay() {
         return;
     }
     
-    const total = VoiceState.cartreduce((sum, item) => sum + item.subtotal, 0);
+    const total = VoiceState.cart.reduce((sum, item) => sum + item.subtotal, 0);
     
     let itemsHTML = '';
     VoiceState.cartforEach((item, index) => {
@@ -977,7 +977,7 @@ async function checkIdleAlerts() {
         const stats = await response.json();
         
         // Verificar si hay carrito sin confirmar
-        if (VoiceState.cartlength > 0) {
+        if (VoiceState.cart.length > 0) {
             await speak('Hay un pedido sin terminar');
             playSound('alert');
         }
