@@ -25,16 +25,6 @@ const VoiceState = {
     }
 };
 
-
-
-let idleTimer;
-let lastActivityTime = Date.now();
-let voiceSettings = {
-    voice: 'es-PE-Standard-A',
-    speed: 1.0,
-    enabled: true
-};
-
 // Configuración
 const API_BASE = '/api';
 const IDLE_TIMEOUT = 180000; // 3 minutos
@@ -101,7 +91,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         micStatus.addEventListener('click', async function() {
             console.log('[Voice] 🎤 Click en micrófono');
             
-            if (!isListening) {
+            if (!VoiceState.isListening) {
                 console.log('[Voice] Activando por toque del usuario...');
                 
                 // Solicitar permisos de audio en móvil
@@ -246,11 +236,11 @@ function startListening() {
 }
 
 function stopListening() {
-    if (!recognition) return;
+    if (!VoiceState.recognition) return;
     
-    isListening = false;
+    VoiceState.isListening = false;
     try {
-        recognition.stop();
+        VoiceState.recognition.stop();
         console.log('[Voice] 🛑 Detenido');
     } catch (error) {
         console.warn('[Voice] Error al detener:', error);
@@ -417,7 +407,7 @@ window.selectAmbiguousOption = async function(index, productId, productName, pri
         price: price
     };
     
-    cart.push({
+    VoiceState.cartpush({
         product: product,
         quantity: 1,
         subtotal: price
@@ -425,7 +415,7 @@ window.selectAmbiguousOption = async function(index, productId, productName, pri
     
     updateCartDisplay();
     
-    const total = cart.reduce((sum, i) => sum + i.subtotal, 0);
+    const total = VoiceState.cartreduce((sum, i) => sum + i.subtotal, 0);
     await speak(`Un ${productName}. Van ${formatPrice(total)}`);
     playSound('success');
 };
@@ -488,19 +478,19 @@ if (!document.getElementById('ambiguous-styles')) {
 
 
 async function handleCancel() {
-    if (cart.length === 0) {
+    if (VoiceState.cartlength === 0) {
         await speak('No hay productos en el carrito');
         return;
     }
     
-    cart = [];
+    VoiceState.cart = [];
     updateCartDisplay();
     await speak('Venta cancelada');
     playSound('cancel');
 }
 
 async function handleConfirm() {
-    if (cart.length === 0) {
+    if (VoiceState.cartlength === 0) {
         await speak('No hay productos para confirmar');
         return;
     }
@@ -511,12 +501,12 @@ async function handleConfirm() {
 async function handleAdd(data) {
     // Agregar al carrito existente
     for (const item of data.items) {
-        cart.push(item);
+        VoiceState.cartpush(item);
     }
     
     updateCartDisplay();
     
-    const total = cart.reduce((sum, item) => sum + item.subtotal, 0);
+    const total = VoiceState.cartreduce((sum, item) => sum + item.subtotal, 0);
     const itemNames = data.items.map(i => `${formatQuantity(i.quantity)} ${i.product.name}`).join(' y ');
     
     await speak(`Agregado ${itemNames}. Van ${formatPrice(total)}`);
@@ -528,7 +518,7 @@ async function handleAdd(data) {
 
 async function handleSale(data) {
     // Reemplazar carrito (nueva venta)
-    cart = data.items;
+    VoiceState.cart = data.items;
     updateCartDisplay();
     
     const total = data.total;
@@ -546,7 +536,7 @@ async function handlePriceChange(data) {
     const newPrice = data.new_price;
     
     // Buscar producto en el carrito
-    const item = cart.find(i => 
+    const item = VoiceState.cartfind(i => 
         i.product.name.toLowerCase().includes(productQuery) ||
         productQuery.includes(i.product.name.toLowerCase())
     );
@@ -562,7 +552,7 @@ async function handlePriceChange(data) {
     
     updateCartDisplay();
     
-    const total = cart.reduce((sum, i) => sum + i.subtotal, 0);
+    const total = VoiceState.cartreduce((sum, i) => sum + i.subtotal, 0);
     await speak(`Precio de ${item.product.name} cambiado de ${formatPrice(oldPrice)} a ${formatPrice(newPrice)}. Nuevo total: ${formatPrice(total)}`);
 }
 
@@ -571,15 +561,15 @@ async function handleProductChange(data) {
     const newProduct = data.new_product;
     
     // Buscar y reemplazar en carrito
-    const itemIndex = cart.findIndex(i => i.product.id === oldProduct.id);
+    const itemIndex = VoiceState.cartfindIndex(i => i.product.id === oldProduct.id);
     
     if (itemIndex === -1) {
         await speak(`No encontré ${oldProduct.name} en el carrito`);
         return;
     }
     
-    const quantity = cart[itemIndex].quantity;
-    cart[itemIndex] = {
+    const quantity = VoiceState.cart[itemIndex].quantity;
+    VoiceState.cart[itemIndex] = {
         product: newProduct,
         quantity: quantity,
         subtotal: quantity * newProduct.price
@@ -594,7 +584,7 @@ async function handleRemove(data) {
     console.log('[Voice] Eliminando producto:', data.product.name);
     
     // Buscar producto en el carrito
-    const index = cart.findIndex(item => item.product.id === data.product.id);
+    const index = VoiceState.cartfindIndex(item => item.product.id === data.product.id);
     
     if (index === -1) {
         await speak(`No encontré ${data.product.name} en el carrito`);
@@ -603,7 +593,7 @@ async function handleRemove(data) {
     }
     
     // Eliminar del carrito
-    const removed = cart.splice(index, 1)[0];
+    const removed = VoiceState.cartsplice(index, 1)[0];
     
     // Actualizar UI
     updateCartDisplay();
@@ -644,20 +634,20 @@ async function searchProduct(query) {
 async function confirmSale() {
     console.log('[Voice] 💾 Confirmando venta...');
     
-    if (cart.length === 0) {
+    if (VoiceState.cartlength === 0) {
         await speak('El carrito está vacío');
         playSound('error');
         return;
     }
     
     const saleData = {
-        items: cart.map(item => ({
+        items: VoiceState.cartmap(item => ({
             product_id: item.product.id,
             quantity: item.quantity,
             unit_price: item.product.price,
             subtotal: item.subtotal
         })),
-        payment_method: paymentMethod,
+        payment_method: VoiceState.paymentMethod,
         payment_reference: null,
         customer_name: null,
         is_credit: false
@@ -679,10 +669,10 @@ async function confirmSale() {
         const result = await response.json();
         console.log('[Voice] ✅ Venta guardada:', result);
         
-        const total = cart.reduce((sum, i) => sum + i.subtotal, 0);
+        const total = VoiceState.cartreduce((sum, i) => sum + i.subtotal, 0);
         
         // Limpiar carrito
-        cart = [];
+        VoiceState.cart = [];
         updateCartDisplay();
         
         // Actualizar UI
@@ -793,7 +783,7 @@ function updateCartDisplay() {
     const cartContainer = document.getElementById('cart-display');
     if (!cartContainer) return;
     
-    if (cart.length === 0) {
+    if (VoiceState.cartlength === 0) {
         cartContainer.innerHTML = `
             <div class="cart-empty">
                 <div class="empty-icon">🛒</div>
@@ -804,10 +794,10 @@ function updateCartDisplay() {
         return;
     }
     
-    const total = cart.reduce((sum, item) => sum + item.subtotal, 0);
+    const total = VoiceState.cartreduce((sum, item) => sum + item.subtotal, 0);
     
     let itemsHTML = '';
-    cart.forEach((item, index) => {
+    VoiceState.cartforEach((item, index) => {
         itemsHTML += `
             <div class="cart-item">
                 <div class="item-info">
@@ -890,7 +880,7 @@ function initPaymentButtons() {
 }
 
 function setPaymentMethod(method) {
-    paymentMethod = method;
+    VoiceState.paymentMethod = method;
     
     // Actualizar UI
     document.querySelectorAll('.payment-btn').forEach(btn => {
@@ -977,7 +967,7 @@ async function checkIdleAlerts() {
         const stats = await response.json();
         
         // Verificar si hay carrito sin confirmar
-        if (cart.length > 0) {
+        if (VoiceState.cartlength > 0) {
             await speak('Hay un pedido sin terminar');
             playSound('alert');
         }
