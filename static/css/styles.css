@@ -70,8 +70,10 @@ body {
     width: 48px;
     height: 48px;
     border-radius: 50%;
+    object-fit: cover;
     background: linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0.1));
     border: 2px solid rgba(255,255,255,0.3);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -80,6 +82,11 @@ body {
     color: white;
     text-transform: uppercase;
     flex-shrink: 0;
+}
+
+.user-avatar:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
 }
 
 .header-info {
